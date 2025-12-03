@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify
 from core.database import db
 from models.distributors import Distributor
-from models.invoices import Invoice
+from models.invoices import Invoice   # <-- correct import
 
 distributor_bp = Blueprint("distributors", __name__, url_prefix="/distributors")
-
 
 # --------------------------------------------------
 # GET ALL DISTRIBUTORS
@@ -172,9 +171,9 @@ def get_distributor_invoices(dist_id):
     for inv in invoices:
         invoice_list.append({
             "id": inv.id,
-            "invoice_no": inv.invoice_no,
-            "date": str(inv.invoice_date),
-            "grand_total": inv.grand_total
+            "invoice_number": inv.invoice_number,   # <-- fixed
+            "date": str(inv.date),                  # <-- fixed
+            "grand_total": inv.grand_total          # <-- fixed
         })
 
     return jsonify({
