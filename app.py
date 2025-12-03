@@ -3,19 +3,20 @@ from core.database import db, migrate
 from config import Config
 
 def create_app():
-    app = Flask(__name__, static_folder='static')
+    app = Flask(__name__, static_folder='static', template_folder='templates')
     app.config.from_object(Config)
 
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # import routes
+    # register blueprints (make sure these files exist and export blueprints)
     from routes.auth_routes import auth_bp
     from routes.invoice_routes import invoice_bp
     from routes.product_routes import product_bp
     from routes.distributor_routes import distributor_bp
     from routes.einvoice_routes import einv_bp
     from routes.ewaybill_routes import eway_bp
+    from routes.render_invoice import render_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(invoice_bp)
@@ -23,11 +24,7 @@ def create_app():
     app.register_blueprint(distributor_bp)
     app.register_blueprint(einv_bp)
     app.register_blueprint(eway_bp)
-
-    # ADD THIS PART
-    @app.route("/invoice")
-    def invoice_page():
-        return render_template("invoice.html")
+    app.register_blueprint(render_bp)
 
     return app
 

@@ -1,150 +1,91 @@
 from flask import Blueprint, request, jsonify
 from core.database import db
-from models.invoices import Invoice, InvoiceItem
-from models.distributors import Distributor
+from models.invoice import Invoice
+from models.invoice_items import InvoiceItem
 from models.products import Product
-import datetime
+from models.distributors import Distributor
+from models.suppliers import Supplier
+from decimal import Decimal
+from datetime import datetime
 
-invoice_bp = Blueprint("invoice", __name__, url_prefix="/invoice")
+invoice_bp = Blueprint("invoice", __name__, url_prefix="/api/invoices")
 
-
-# ---------------------------------------------------
-# CREATE INVOICE
-# ---------------------------------------------------
 @invoice_bp.route("/create", methods=["POST"])
 def create_invoice():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    # Minimal validation (expand as needed)
+    supplier_id = data.get("supplier_id")
+    buyer_id = data.get("buyer_id")
+    shipto_id = data.get("shipto_id")
+    invoice_no = data.get("invoice_no")
+    items = data.get("items", [])  # list of dicts
 
-        distributor_id = data.get("distributor_id")
-        items_data = data.get("items", [])
-        invoice_no = data.get("invoice_no")
-        invoice_date = data.get("invoice_date", datetime.date.today().isoformat())
+    if not (supplier_id and buyer_id and invoice_no):
+        return jsonify({"error": "supplier_id, buyer_id and invoice_no required"}), 400
 
-        if not distributor_id or not items_data:
-            return jsonify({"error": "Missing distributor or invoice items"}), 400
+    inv = Invoice(
+        invoice_no=invoice_no,
+        date=datetime.utcnow(),
+        supplier_id=supplier_id,
+        buyer_id=buyer_id,
+        shipto_id=shipto_id
+    )
 
-        distributor = Distributor.query.get(distributor_id)
-        if not distributor:
-            return jsonify({"error": "Distributor not found"}), 404
+    db.session.add(inv)
+    db.session.flush()  # get invoice id
 
-        invoice = Invoice(
-            distributor_id=distributor_id,
-            invoice_no=invoice_no,
-            invoice_date=invoice_date
+    total_pcs = 0
+    total_cs = 0
+    taxable_value = Decimal("0.00")
+    total_gst = Decimal("0.00")
+    grand_total = Decimal("0.00")
+
+    for it in items:
+        product_id = it.get("product_id")
+        product = Product.query.get(product_id) if product_id else None
+        product_name = (product.name if product else it.get("product_name")) or "Unknown"
+        pcs = int(it.get("pcs", 0))
+        cs = int(it.get("cs", 0))
+        rate = Decimal(str(it.get("rate", "0")))
+        disc = Decimal(str(it.get("disc_percent", "0")))
+        gst_percent = Decimal(str(it.get("gst_percent", "0")))
+
+        # taxable calculation example (rate * qty) less discount
+        qty_multiplier = pcs  # or compute from cs * pack if needed
+        raw_amount = rate * qty_multiplier
+        taxable = raw_amount * (1 - (disc / 100))
+        gst_amount = taxable * (gst_percent / 100)
+        line_total = taxable + gst_amount
+
+        item = InvoiceItem(
+            invoice_id=inv.id,
+            product_id=product_id,
+            product_name=product_name,
+            hsn=product.hsn if product else it.get("hsn"),
+            pcs=pcs,
+            cs=cs,
+            rate=rate,
+            disc_percent=disc,
+            taxable=taxable,
+            gst_percent=gst_percent,
+            gst_amount=gst_amount,
+            total=line_total
         )
 
-        db.session.add(invoice)
-        db.session.flush()  # get invoice.id before committing
+        db.session.add(item)
 
-        grand_total = 0
+        total_pcs += pcs
+        total_cs += cs
+        taxable_value += taxable
+        total_gst += gst_amount
+        grand_total += line_total
 
-        for item in items_data:
-            product_id = item.get("product_id")
-            qty_pcs = item.get("qty_pcs", 0)
-            qty_cs = item.get("qty_cs", 0)
-            rate = item.get("rate", 0)
-            discount = item.get("discount", 0)
-            gst = item.get("gst", 0)
+    inv.total_pcs = total_pcs
+    inv.total_cs = total_cs
+    inv.taxable_value = taxable_value
+    inv.total_gst = total_gst
+    inv.grand_total = grand_total
 
-            # calculate taxable amount
-            taxable = rate - (rate * (discount / 100))
-            total = taxable + (taxable * (gst / 100))
+    db.session.commit()
 
-            grand_total += total
-
-            invoice_item = InvoiceItem(
-                invoice_id=invoice.id,
-                product_id=product_id,
-                qty_pcs=qty_pcs,
-                qty_cs=qty_cs,
-                rate=rate,
-                discount=discount,
-                taxable=taxable,
-                gst=gst,
-                total=total
-            )
-
-            db.session.add(invoice_item)
-
-        invoice.grand_total = grand_total
-        db.session.commit()
-
-        return jsonify({
-            "message": "Invoice created",
-            "invoice_id": invoice.id,
-            "grand_total": grand_total
-        }), 201
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-
-# ---------------------------------------------------
-# GET INVOICE DETAILS
-# ---------------------------------------------------
-@invoice_bp.route("/<int:invoice_id>", methods=["GET"])
-def get_invoice(invoice_id):
-    invoice = Invoice.query.get(invoice_id)
-    if not invoice:
-        return jsonify({"error": "Invoice not found"}), 404
-
-    items = InvoiceItem.query.filter_by(invoice_id=invoice_id).all()
-    item_list = []
-
-    for i in items:
-        product = Product.query.get(i.product_id)
-        item_list.append({
-            "product": product.name if product else "Unknown",
-            "qty_pcs": i.qty_pcs,
-            "qty_cs": i.qty_cs,
-            "rate": i.rate,
-            "discount": i.discount,
-            "taxable": i.taxable,
-            "gst": i.gst,
-            "total": i.total
-        })
-
-    return jsonify({
-        "invoice_no": invoice.invoice_no,
-        "date": invoice.invoice_date,
-        "distributor_id": invoice.distributor_id,
-        "grand_total": invoice.grand_total,
-        "items": item_list
-    })
-
-
-# ---------------------------------------------------
-# EXPORT JSON FOR E-INVOICE
-# ---------------------------------------------------
-@invoice_bp.route("/export-json/<int:invoice_id>", methods=["GET"])
-def export_invoice_json(invoice_id):
-    invoice = Invoice.query.get(invoice_id)
-    if not invoice:
-        return jsonify({"error": "Invoice not found"}), 404
-
-    items = InvoiceItem.query.filter_by(invoice_id=invoice_id).all()
-
-    json_data = {
-        "InvoiceNo": invoice.invoice_no,
-        "InvoiceDate": invoice.invoice_date,
-        "SellerGSTIN": "19AGXPA6418M1ZQ",
-        "BuyerGSTIN": "",
-        "Items": []
-    }
-
-    for item in items:
-        product = Product.query.get(item.product_id)
-        json_data["Items"].append({
-            "Description": product.name if product else "",
-            "HSN": product.hsn if product else "",
-            "QtyPCS": item.qty_pcs,
-            "QtyCS": item.qty_cs,
-            "Rate": item.rate,
-            "Taxable": item.taxable,
-            "GST": item.gst,
-            "Total": item.total
-        })
-
-    return jsonify(json_data)
+    return jsonify({"message": "invoice created", "invoice_id": inv.id})
