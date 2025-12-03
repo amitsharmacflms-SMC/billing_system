@@ -1,9 +1,9 @@
-from flask import Flask
+from flask import Flask, render_template
 from core.database import db, migrate
 from config import Config
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
 
     db.init_app(app)
@@ -24,7 +24,11 @@ def create_app():
     app.register_blueprint(einv_bp)
     app.register_blueprint(eway_bp)
 
-    return app
+    # ADD THIS PART
+    @app.route("/invoice")
+    def invoice_page():
+        return render_template("invoice.html")
 
+    return app
 
 app = create_app()
