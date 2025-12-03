@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tax Invoice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+/*================ THEME COLORS ================*/
+:root{
+    --primary:#0f172a;
+    --primary-light:#1c2e57;
+    --blue:#1d4ed8;
+    --text:#1e293b;
+    --muted:#64748b;
+    --card:#ffffff;
+    --border:#e2e8f0;
+    --bg:#f8fafc;
+    --highlight:#eef2ff;
+}
+
+/*================ BASE =================*/
+*{box-sizing:border-box;}
+body{
+    margin:0;
+    background:var(--bg);
+    font-family:"Segoe UI",Roboto,Arial;
+    color:var(--text);
+    font-size:13px;
+}
+
+/*================ WRAPPER =================*/
+.invoice-container{
+    max-width:900px;
+    margin:18px auto;
+    background:var(--card);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 8px 28px rgba(0,0,0,.08);
+}
+
+/*================ HEADER =================*/
+.header{
+    background:linear-gradient(180deg,var(--primary),var(--primary-light));
+    padding:18px 26px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.header img{
+    height:70px;
+}
+.header-title{
+    font-size:22px;
+    font-weight:600;
+    color:#fff;
+    letter-spacing:.6px;
+}
+
+/*================ SECTION TITLE =================*/
+.section-title{
+    background:var(--highlight);
+    padding:10px 22px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.4px;
+    border-bottom:1px solid var(--border);
+}
+
+/*================ PARTIES (3 COLUMN) =================*/
+.party-table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+}
+.party-table td{
+    vertical-align:top;
+    width:33.33%;
+    border-right:1px solid var(--border);
+    padding:12px 14px;
+}
+.party-table td:last-child{
+    border-right:none;
+}
+.party-title{
+    font-weight:600;
+    color:var(--primary);
+    margin-bottom:6px;
+}
+.party-line{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.38;
+}
+
+/*================ META =================*/
+.meta{
+    padding:12px 22px;
+}
+.meta-table{
+    width:100%;
+    border-collapse:collapse;
+}
+.meta-table td{
+    padding:6px 4px;
+    font-size:12px;
+}
+.meta-label{
+    width:22%;
+    font-weight:600;
+    color:var(--text);
+}
+
+/*================ ITEMS TABLE =================*/
+.items{
+    padding:10px 22px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th{
+    background:var(--highlight);
+    color:var(--primary);
+    font-size:12px;
+    padding:7px 4px;
+}
+td{
+    border-bottom:1px solid var(--border);
+    padding:7px 4px;
+    font-size:12px;
+    text-align:center;
+}
+tbody tr:hover{background:#fbfbfb;}
+
+/*================ TOTALS =================*/
+.total{
+    padding:12px 22px;
+    display:flex;
+    justify-content:flex-end;
+}
+.total-table{
+    width:360px;
+}
+.total-table td{
+    padding:5px 4px;
+}
+.total-label{
+    text-align:right;
+    font-weight:600;
+}
+.grand{
+    background:var(--primary);
+    color:#fff;
+    padding:4px 6px;
+    border-radius:6px;
+}
+
+/*================ AMOUNT IN WORDS =================*/
+.words-box{
+    padding:10px 22px;
+    font-size:12px;
+    line-height:1.45;
+    font-weight:500;
+    border-top:1px dashed var(--border);
+    border-bottom:1px dashed var(--border);
+}
+
+/*================ DECLARATION =================*/
+.declaration-box{
+    padding:14px 22px;
+    font-size:12px;
+    text-align:center;
+    line-height:1.45;
+    color:#475569;
+}
+
+/*================ SIGNATURE =================*/
+.signature-block{
+    display:flex;
+    justify-content:space-between;
+    padding:18px 22px 26px;
+    font-size:12px;
+}
+
+/*================ PRINT =================*/
+@media print{
+    html,body{
+        width:210mm;
+        height:297mm;
+        margin:0;
+        padding:0;
+    }
+
+    .invoice-container{
+        border-radius:0;
+        box-shadow:none;
+        margin:0;
+    }
+
+    /* This keeps parties in 3 fixed columns */
+    .party-table td{
+        display:table-cell;
+        width:33%;
+        page-break-inside:avoid;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="invoice-container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <img src="static/onlylogo.png">
+        <div class="header-title">TAX INVOICE</div>
+    </div>
+
+    <!-- PARTIES -->
+    <div class="section-title">Invoice Parties</div>
+    <table class="party-table">
+        <tr>
+            <!-- Supplier -->
+            <td>
+                <div class="party-title">Supplier</div>
+                <div class="party-line"><b>M/S BALAJEE TRADING CO</b></div>
+                <div class="party-line">PO-NAGESWARPUR (SADAR-GHAT)</div>
+                <div class="party-line">SAHAPUR (NEAR CHATIAN-MORE)</div>
+                <div class="party-line">P.S + DT - MALDA 732142</div>
+                <div class="party-line">Mobile: 9734103692</div>
+                <div class="party-line">GSTIN: 19AGXPA6418M1ZQ</div>
+                <div class="party-line">State Code: 19</div>
+                <div class="party-line">Email: mahabir_y2k@yahoo.com</div>
+            </td>
+
+            <!-- Buyer -->
+            <td>
+                <div class="party-title">Buyer (Bill To)</div>
+                <div class="party-line"><b>ABBAS ANSARI</b></div>
+                <div class="party-line">MASHALDA BAZAR, KARIALI</div>
+                <div class="party-line">Mob: 9732701725 / 9614496092</div>
+                <div class="party-line">GSTIN/UIN</div>
+                <div class="party-line">State: West Bengal (19)</div>
+                <div class="party-line">Place of Supply: West Bengal</div>
+            </td>
+
+            <!-- Ship -->
+            <td>
+                <div class="party-title">Consignee (Ship To)</div>
+                <div class="party-line"><b>ABBAS ANSARI</b></div>
+                <div class="party-line">MASHALDA BAZAR, KARIALI</div>
+                <div class="party-line">Mob: 9732701725 / 9614496092</div>
+                <div class="party-line">GSTIN/UIN</div>
+                <div class="party-line">State: West Bengal (19)</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- META -->
+    <div class="section-title">Invoice Details</div>
+    <div class="meta">
+        <table class="meta-table">
+            <tr>
+                <td class="meta-label">Invoice No:</td><td>MSD/25-26/0299</td>
+                <td class="meta-label">Invoice Date:</td><td>25-Oct-2025</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Reverse Charge:</td><td>No</td>
+                <td class="meta-label">Vehicle No:</td><td>-</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Payment Mode:</td><td>-</td>
+                <td class="meta-label">Transport:</td><td>-</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="section-title">Items</div>
+    <div class="items">
+        <table>
+            <thead>
+                <tr>
+                    <th>SL</th>
+                    <th>Product</th>
+                    <th>HSN</th>
+                    <th>Qty (PCS / CS)</th>
+                    <th>Rate</th>
+                    <th>Disc%</th>
+                    <th>Taxable</th>
+                    <th>GST%</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01</td>
+                    <td>Dairy Creamer 300×19G</td>
+                    <td>04022990</td>
+                    <td>3000 PCS / 10 Cs</td>
+                    <td>2285.72</td>
+                    <td>1%</td>
+                    <td>22628.63</td>
+                    <td>5%</td>
+                    <td>23760.07</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="section-title">Summary</div>
+    <div class="total">
+        <table class="total-table">
+            <tr><td class="total-label">Taxable</td><td>₹ 71,572.40</td></tr>
+            <tr><td class="total-label">CGST (2.5%)</td><td>₹ 1,789.32</td></tr>
+            <tr><td class="total-label">SGST (2.5%)</td><td>₹ 1,789.32</td></tr>
+            <tr><td class="total-label">Round Off</td><td>- ₹0.04</td></tr>
+            <tr>
+                <td class="total-label"><span class="grand">Grand Total</span></td>
+                <td><span class="grand">₹ 75,151.00</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- AMOUNT IN WORDS -->
+    <div class="words-box">
+        <b>Amount in Words:</b><br>
+        INR Seventy Five Thousand One Hundred Fifty One Only
+    </div>
+
+    <!-- DECLARATION (OPTION A) -->
+    <div class="declaration-box">
+        We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.<br>
+        <b>This is a Computer Generated Invoice.</b>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div class="signature-block">
+        <div><br>Customer Seal & Signature</div>
+        <div>For <b>M/S BALAJEE TRADING CO</b><br><br><br>Authorized Signatory</div>
+    </div>
+
+</div>
+
+</body>
+</html>

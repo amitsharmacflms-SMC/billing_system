@@ -1,0 +1,2 @@
+DATABASE_URL=postgresql://smcbilling1:amitsmcms@smc-db.cvausu8c8efg.ap-south-1.rds.amazonaws.com:5432/billing_db
+FLASK_SECRET_KEY=your_secret_key
