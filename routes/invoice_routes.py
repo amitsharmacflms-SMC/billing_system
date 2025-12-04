@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from core.database import db
-from models.invoice import Invoice
+from models.invoices import Invoice
 from models.invoice_items import InvoiceItem
 from models.products import Product
 from models.distributors import Distributor

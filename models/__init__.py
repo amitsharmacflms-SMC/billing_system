@@ -1,7 +1,7 @@
-# make importing easier
+from core.database import db
+
+# Import all models here
 from .users import User
-from .suppliers import Supplier
-from .distributors import Distributor
 from .products import Product
-from .invoice import Invoice
-from .invoice_items import InvoiceItem
+from .distributors import Distributor
+from .invoices import Invoice
