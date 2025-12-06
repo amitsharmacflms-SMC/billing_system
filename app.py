@@ -6,35 +6,64 @@ def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
 
+    # ------------------------------
+    # Initialize DB + Migrations
+    # ------------------------------
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # import routes
+    # ------------------------------
+    # Import Blueprints
+    # ------------------------------
     from routes.auth_routes import auth_bp
     from routes.invoice_routes import invoice_bp
     from routes.product_routes import product_bp
     from routes.distributor_routes import distributor_bp
     from routes.einvoice_routes import einv_bp
     from routes.ewaybill_routes import eway_bp
-    from routes.supplier_routes import supplier_bp   # <-- NEW
+    from routes.supplier_routes import supplier_bp
+    from routes.render_invoice import render_bp
 
-    # register blueprints
+    # ------------------------------
+    # Register Blueprints
+    # ------------------------------
     app.register_blueprint(auth_bp)
     app.register_blueprint(invoice_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(distributor_bp)
     app.register_blueprint(einv_bp)
     app.register_blueprint(eway_bp)
-    app.register_blueprint(supplier_bp)              # <-- NEW
+    app.register_blueprint(supplier_bp)
+    app.register_blueprint(render_bp)
+
+    # ------------------------------
+    # ROOT ROUTE (Fixes Railway 404)
+    # ------------------------------
+    @app.route("/")
+    def index():
+        # If you want login screen:
+        # return render_template("login.html")
+        return "<h2>Billing System API is Running</h2>"
+
+    # ------------------------------
+    # Health Check Route
+    # ------------------------------
+    @app.route("/health")
+    def health():
+        return {"status": "ok"}, 200
 
     return app
 
+
+# --------------------------------------------------
+# Create App Instance
+# --------------------------------------------------
 app = create_app()
 
 
-# ---------------------------------------
-# 🚀 REQUIRED FOR RAILWAY DEPLOYMENT
-# ---------------------------------------
+# --------------------------------------------------
+# REQUIRED FOR RAILWAY DEPLOYMENT
+# --------------------------------------------------
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
