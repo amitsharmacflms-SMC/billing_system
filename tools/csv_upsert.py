@@ -1,189 +1,168 @@
 import os
 import csv
+from app import app
 from core.database import db
 from models.products import Product
 from models.distributors import Distributor
 from models.suppliers import Supplier
-from models.invoice_settings import InvoiceSetting
 
-BASE_DIR = os.path.join(os.path.dirname(__file__), "..", "masters")
-
-def load_csv(filename, required_cols):
-    """Load CSV and validate column headers."""
-    path = os.path.join(BASE_DIR, filename)
-
-    if not os.path.exists(path):
-        print(f"❌ CSV not found: {filename}")
-        return []
-
-    with open(path, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        if not set(required_cols).issubset(reader.fieldnames):
-            print(f"❌ Invalid columns in {filename}")
-            print(f"Required: {required_cols}")
-            print(f"Found: {reader.fieldnames}")
-            return []
-
-        return list(reader)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MASTERS_DIR = os.path.join(BASE_DIR, "..", "masters")
 
 
-# -------------------------------------------
-# 1️⃣ IMPORT PRODUCTS
-# -------------------------------------------
+# ---------------------------------------------------------
+# Auto-detect delimiter: comma, tab, or pipe
+# ---------------------------------------------------------
+def detect_delimiter(text):
+    if "\t" in text:
+        return "\t"
+    if "|" in text:
+        return "|"
+    return ","
+
+
+# ---------------------------------------------------------
+# Normalize headers
+# ---------------------------------------------------------
+def normalize_headers(row):
+    return {k.strip().lower(): (v.strip() if v else "") for k, v in row.items()}
+
+
+# ---------------------------------------------------------
+# IMPORT PRODUCTS
+# ---------------------------------------------------------
 def import_products():
-    rows = load_csv("products.csv",
-                    ["id", "name", "hsn", "mrp", "rate", "pack", "gst_percent", "category"])
-    if not rows: return
+    print("\n📦 Importing Products...")
 
-    for row in rows:
-        product = Product.query.get(row["id"])
+    filepath = os.path.join(MASTERS_DIR, "products.csv")
 
-        if product:
-            # Update existing
-            product.name = row["name"]
-            product.hsn = row["hsn"]
-            product.mrp = float(row["mrp"])
-            product.rate = float(row["rate"])
-            product.pack = row["pack"]
-            product.gst_percent = float(row["gst_percent"])
-            product.category = row["category"]
-        else:
-            # Insert new
-            product = Product(
-                id=row["id"],
-                name=row["name"],
-                hsn=row["hsn"],
-                mrp=float(row["mrp"]),
-                rate=float(row["rate"]),
-                pack=row["pack"],
-                gst_percent=float(row["gst_percent"]),
-                category=row["category"]
-            )
-            db.session.add(product)
+    with app.app_context():
+        with open(filepath, encoding="utf-8-sig") as f:
+            sample = f.read(500)
+            f.seek(0)
 
-    db.session.commit()
-    print("✅ Products Imported")
+            delimiter = detect_delimiter(sample)
+            reader = csv.DictReader(f, delimiter=delimiter)
+
+            for raw in reader:
+                row = normalize_headers(raw)
+
+                sku = row.get("sku")
+                name = row.get("name")
+
+                if not sku or not name:
+                    print("⚠ Skipped invalid product row:", row)
+                    continue
+
+                product = Product.query.filter_by(sku=sku).first()
+                if not product:
+                    product = Product(sku=sku)
+
+                product.name = name
+                product.hsn = row.get("hsn", "")
+                product.mrp = float(row.get("mrp", 0) or 0)
+                product.rate = float(row.get("rate", 0) or 0)
+                product.pack_size = row.get("pack_size", "")
+                product.gst = float(row.get("gst", 0) or 0)
+                product.category = row.get("category", "")
+
+                db.session.add(product)
+
+        db.session.commit()
+        print("✔ Products Imported Successfully")
 
 
-# -------------------------------------------
-# 2️⃣ IMPORT DISTRIBUTORS
-# -------------------------------------------
+# ---------------------------------------------------------
+# IMPORT DISTRIBUTORS (Your uploaded file)
+# ---------------------------------------------------------
 def import_distributors():
-    rows = load_csv("distributors.csv",
-                    ["id", "name", "address", "city", "state", "pincode",
-                     "gstin", "contact_person", "phone", "email"])
+    print("\n🏪 Importing Distributors...")
 
-    if not rows: return
+    filepath = os.path.join(MASTERS_DIR, "distributors.csv")
 
-    for row in rows:
-        dist = Distributor.query.get(row["id"])
+    with app.app_context():
+        with open(filepath, encoding="utf-8-sig") as f:
+            sample = f.read(500)
+            f.seek(0)
 
-        if dist:
-            dist.name = row["name"]
-            dist.address = row["address"]
-            dist.city = row["city"]
-            dist.state = row["state"]
-            dist.pincode = row["pincode"]
-            dist.gstin = row["gstin"]
-            dist.contact_person = row["contact_person"]
-            dist.phone = row["phone"]
-            dist.email = row["email"]
-        else:
-            dist = Distributor(
-                id=row["id"],
-                name=row["name"],
-                address=row["address"],
-                city=row["city"],
-                state=row["state"],
-                pincode=row["pincode"],
-                gstin=row["gstin"],
-                contact_person=row["contact_person"],
-                phone=row["phone"],
-                email=row["email"]
-            )
-            db.session.add(dist)
+            delimiter = detect_delimiter(sample)
+            reader = csv.DictReader(f, delimiter=delimiter)
 
-    db.session.commit()
-    print("✅ Distributors Imported")
+            for raw in reader:
+                row = normalize_headers(raw)
+
+                name = row.get("name")
+                if not name:
+                    print("⚠ Skipped row (no name):", row)
+                    continue
+
+                dist = Distributor.query.filter_by(name=name).first()
+                if not dist:
+                    dist = Distributor(name=name)
+
+                dist.address = row.get("address", "")
+                dist.city = row.get("city", "")
+                dist.state = row.get("state", "")
+                dist.pincode = row.get("pincode", "")
+                dist.gstin = row.get("gstin", "")
+                dist.contact_person = row.get("contact_person", "")
+                dist.phone = row.get("phone", "")
+                dist.email = row.get("email", "")
+
+                db.session.add(dist)
+
+        db.session.commit()
+        print("✔ Distributors Imported Successfully")
 
 
-# -------------------------------------------
-# 3️⃣ IMPORT SUPPLIERS
-# -------------------------------------------
+# ---------------------------------------------------------
+# IMPORT SUPPLIERS
+# ---------------------------------------------------------
 def import_suppliers():
-    rows = load_csv("suppliers.csv",
-                    ["id", "name", "address", "city", "state", "pincode",
-                     "gstin", "contact_person", "phone", "email"])
+    print("\n🏢 Importing Suppliers...")
 
-    if not rows: return
+    filepath = os.path.join(MASTERS_DIR, "suppliers.csv")
 
-    for row in rows:
-        sup = Supplier.query.get(row["id"])
+    with app.app_context():
+        with open(filepath, encoding="utf-8-sig") as f:
+            sample = f.read(500)
+            f.seek(0)
 
-        if sup:
-            sup.name = row["name"]
-            sup.address = row["address"]
-            sup.city = row["city"]
-            sup.state = row["state"]
-            sup.pincode = row["pincode"]
-            sup.gstin = row["gstin"]
-            sup.contact_person = row["contact_person"]
-            sup.phone = row["phone"]
-            sup.email = row["email"]
-        else:
-            sup = Supplier(
-                id=row["id"],
-                name=row["name"],
-                address=row["address"],
-                city=row["city"],
-                state=row["state"],
-                pincode=row["pincode"],
-                gstin=row["gstin"],
-                contact_person=row["contact_person"],
-                phone=row["phone"],
-                email=row["email"]
-            )
-            db.session.add(sup)
+            delimiter = detect_delimiter(sample)
+            reader = csv.DictReader(f, delimiter=delimiter)
 
-    db.session.commit()
-    print("✅ Suppliers Imported")
+            for raw in reader:
+                row = normalize_headers(raw)
+
+                name = row.get("name")
+                if not name:
+                    print("⚠ Skipped supplier row:", row)
+                    continue
+
+                sup = Supplier.query.filter_by(name=name).first()
+                if not sup:
+                    sup = Supplier(name=name)
+
+                sup.gstin = row.get("gstin", "")
+                sup.address = row.get("address", "")
+                sup.city = row.get("city", "")
+                sup.state = row.get("state", "")
+                sup.pincode = row.get("pincode", "")
+
+                db.session.add(sup)
+
+        db.session.commit()
+        print("✔ Suppliers Imported Successfully")
 
 
-# -------------------------------------------
-# 4️⃣ IMPORT INVOICE SETTINGS
-# -------------------------------------------
-def import_invoice_settings():
-    rows = load_csv("invoice_settings.csv", ["key", "value"])
-    if not rows: return
+# ---------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------
+if __name__ == "__main__":
+    print("\n🚀 Starting CSV Import...")
 
-    for row in rows:
-        setting = InvoiceSetting.query.filter_by(key=row["key"]).first()
-
-        if setting:
-            setting.value = row["value"]
-        else:
-            setting = InvoiceSetting(key=row["key"], value=row["value"])
-            db.session.add(setting)
-
-    db.session.commit()
-    print("✅ Invoice Settings Imported")
-
-
-# -------------------------------------------
-# RUN ALL IMPORTERS
-# -------------------------------------------
-def import_all():
-    print("🚀 Starting CSV Import...")
     import_products()
     import_distributors()
     import_suppliers()
-    import_invoice_settings()
-    print("🎉 Import Finished!")
 
-
-if __name__ == "__main__":
-    from app import create_app
-    app = create_app()
-
-    with app.app_context():
-        import_all()
+    print("\n✅ ALL CSV DATA IMPORTED SUCCESSFULLY\n")

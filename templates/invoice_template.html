@@ -1,0 +1,156 @@
+<!-- templates/invoice_template.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Invoice {{ invoice.invoice_number }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #111; margin: 0; padding: 0; }
+    .container { width: 1000px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; }
+    .row { display:flex; width:100%; gap: 16px; box-sizing: border-box; }
+    .col { flex:1; }
+    .text-right { text-align: right; }
+    .heading { font-size: 18px; font-weight: 700; }
+    table { width:100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f5f5f5; font-weight: 700; }
+    .no-border { border: none; }
+    .small { font-size: 12px; }
+    .totals { width: 300px; float: right; margin-top: 12px; }
+    .center { text-align: center; }
+    @media print {
+      .container { width: auto; border: none; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="heading">{{ invoice.supplier.name }}</div>
+        <div class="small" style="white-space: pre-line;">{{ invoice.supplier.address }}</div>
+        <div class="small">GSTIN: {{ invoice.supplier.gstin }}</div>
+        {% if invoice.supplier.phone %}<div class="small">Phone: {{ invoice.supplier.phone }}</div>{% endif %}
+        {% if invoice.supplier.email %}<div class="small">Email: {{ invoice.supplier.email }}</div>{% endif %}
+      </div>
+      <div class="col text-right">
+        <div style="font-size: 20px; font-weight: 800;">TAX INVOICE</div>
+        <div class="small">Invoice No: <strong>{{ invoice.invoice_number }}</strong></div>
+        <div class="small">Date: <strong>{{ invoice.date }}</strong></div>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <td class="no-border" style="width:50%; vertical-align: top;">
+          <strong>To (Buyer)</strong><br>
+          <div class="small">
+            {{ invoice.distributor.name }}<br>
+            <span style="white-space: pre-line;">{{ invoice.distributor.address }}</span><br>
+            GSTIN: {{ invoice.distributor.gstin or "N/A" }}<br>
+            State: {{ invoice.distributor.state or "N/A" }} (Code: {{ invoice.distributor.state_code or "N/A" }})
+          </div>
+        </td>
+        <td class="no-border" style="vertical-align: top;">
+          <strong>Details</strong><br>
+          <div class="small">
+            Payment Terms: <br>
+            Transport: <br>
+            Reference: 
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Product / Description</th>
+          <th>HSN</th>
+          <th>Qty</th>
+          <th>Rate</th>
+          <th>Taxable Value</th>
+          <th>GST %</th>
+          <th>GST Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in invoice.items %}
+        <tr>
+          <td class="center">{{ loop.index }}</td>
+          <td>{{ it.description }}{% if it.sku %} ({{ it.sku }}){% endif %}</td>
+          <td class="center">{{ it.hsn if it.hsn is defined else '' }}</td>
+          <td class="center">{{ "%.2f"|format(it.qty) }}</td>
+          <td class="text-right">{{ "%.2f"|format(it.rate) }}</td>
+          <td class="text-right">{{ "%.2f"|format(it.taxable_value) }}</td>
+          <td class="center">{{ "%.2f"|format(it.gst_percent) }}</td>
+          <td class="text-right">{{ "%.2f"|format(it.gst_amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <table>
+        <tr>
+          <th class="small">Taxable Total</th>
+          <td class="text-right small">{{ "%.2f"|format(invoice.totals.taxable_total) }}</td>
+        </tr>
+        <tr>
+          <th class="small">Total GST</th>
+          <td class="text-right small">{{ "%.2f"|format(invoice.totals.gst_total) }}</td>
+        </tr>
+        <tr>
+          <th class="small">Grand Total</th>
+          <td class="text-right small"><strong>{{ "%.2f"|format(invoice.totals.grand_total) }}</strong></td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="clear: both;"></div>
+
+    <h4>GST Summary</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>GST %</th>
+          <th>Taxable Value</th>
+          <th>CGST</th>
+          <th>SGST</th>
+          <th>IGST</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for k, s in invoice.gst_summary.items() %}
+        <tr>
+          <td class="center">{{ "%.2f"|format(s.gst_percent) }}</td>
+          <td class="text-right">{{ "%.2f"|format(s.taxable_value) }}</td>
+          <td class="text-right">{{ "%.2f"|format(s.cgst) }}</td>
+          <td class="text-right">{{ "%.2f"|format(s.sgst) }}</td>
+          <td class="text-right">{{ "%.2f"|format(s.igst) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p><strong>Amount (in words):</strong> {{ invoice.amount_in_words }}</p>
+
+    <div style="margin-top: 30px;">
+      <div style="float:left; width:50%;">
+        <p>Bank Details</p>
+        <small>Account name: {{ invoice.supplier.name }}</small><br/>
+        <small>Account no: </small><br/>
+        <small>IFSC: </small>
+      </div>
+      <div style="float:right; width:40%;">
+        <p class="text-right small">For {{ invoice.supplier.name }}</p>
+        <p class="text-right" style="margin-top:60px;">Authorised Signatory</p>
+      </div>
+      <div style="clear:both;"></div>
+    </div>
+
+  </div>
+</body>
+</html>
