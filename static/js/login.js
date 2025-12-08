@@ -1,45 +1,27 @@
-const API_BASE = "https://billingsystem-production.up.railway.app";
-
-function togglePassword() {
-    const pass = document.getElementById("password");
-    const btn = document.querySelector(".showpass");
-    
-    if (pass.type === "password") {
-        pass.type = "text";
-        btn.textContent = "Hide";
-    } else {
-        pass.type = "password";
-        btn.textContent = "Show";
-    }
-}
-
 async function login() {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    const response = await fetch(`${API_BASE}/auth/login`, {
+    const res = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (!response.ok) {
-        document.getElementById("error").innerText = "Invalid email or password";
+    if (!res.ok) {
+        alert(data.error || "Login failed");
         return;
     }
 
-    // Save JWT token
+    // SAVE VALUES IN LOCAL STORAGE
     localStorage.setItem("token", data.access_token);
+    localStorage.setItem("user_role", data.role || "");
+    localStorage.setItem("state", data.state || "");
+    localStorage.setItem("supplier_id", data.supplier_id || "");
 
-    // Fetch user role using /auth/me
-    const me = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${data.access_token}` }
-    }).then(r => r.json());
+    console.log("LOGIN STORED:", data);
 
-    localStorage.setItem("user_role", me.role);
-
-    // Redirect
     window.location.href = "/menu";
 }
