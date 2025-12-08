@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from core.database import db
 from models.stock import StockEntry
 from models.products import Product
-from models.invoices import Invoice, InvoiceItem
+from models.invoices import Invoice, InvoiceItemModel
 from datetime import datetime
 
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
@@ -46,8 +46,9 @@ def stock_summary():
 
         # Total Sold in CS (calculated from invoice items)
         sold_pcs = db.session.query(
-            db.func.sum(InvoiceItem.qty)
-        ).filter_by(product_id=p.id).scalar() or 0
+    db.func.sum(InvoiceItemModel.qty)
+).filter_by(product_id=p.id).scalar() or 0
+
 
         # pack size (PCS per case)
         pack = p.pack or 1
