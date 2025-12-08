@@ -1,14 +1,17 @@
 from flask import Flask, render_template
 from core.database import db, migrate
 from config import Config
+from flask_jwt_extended import JWTManager
+
 
 def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
 
-    from flask_jwt_extended import JWTManager
+    # ------------------------------
+    # INIT JWT  (REQUIRED)
+    # ------------------------------
     jwt = JWTManager(app)
-
 
     # ------------------------------
     # Initialize DB + Migrations
@@ -26,8 +29,10 @@ def create_app():
     from routes.einvoice_routes import einv_bp
     from routes.ewaybill_routes import eway_bp
     from routes.supplier_routes import supplier_bp
-    from routes.render_invoice import render_bp
     from routes.stock_routes import stock_bp
+    from routes.user_routes import user_bp
+    from routes.supplier_mapping_routes import map_bp
+
     # ------------------------------
     # Register Blueprints
     # ------------------------------
@@ -38,71 +43,24 @@ def create_app():
     app.register_blueprint(einv_bp)
     app.register_blueprint(eway_bp)
     app.register_blueprint(supplier_bp)
-    app.register_blueprint(render_bp)
     app.register_blueprint(stock_bp)
-
-
+    app.register_blueprint(user_bp)
+    app.register_blueprint(map_bp)
 
     # ------------------------------
-    # ROOT ROUTE
+    # HTML Routes
     # ------------------------------
     @app.route("/")
     def login_page():
         return render_template("login.html")
 
+    @app.route("/menu")
+    def menu_page():
+        return render_template("menu.html")
 
     @app.route("/test-login")
     def test_login_page():
         return render_template("test_login.html")
-
-
-    # ------------------------------
-    # MENU ROUTE
-    # ------------------------------
-
-
-
-
-    @app.route("/menu")
-    def menu():
-        return render_template("menu.html")
-
-    @app.route("/received-stock")
-    def received_stock():
-        return render_template("received_stock.html")
-
-    @app.route("/create-invoice")
-    def create_invoice_page():
-        return render_template("create_invoice.html")
-
-    @app.route("/search-invoice")
-    def search_invoice():
-        return render_template("search_invoice.html")
-
-    @app.route("/reports")
-    def reports():
-        return render_template("reports.html")
-
-    @app.route("/product-update")
-    def product_update():
-        return render_template("product_update.html")
-
-    @app.route("/suppliers-update")
-    def suppliers_update():
-        return render_template("suppliers_update.html")
-
-    @app.route("/distributors-update")
-    def distributors_update():
-        return render_template("distributors_update.html")
-
-
-
-    # ------------------------------
-    # Health Check
-    # ------------------------------
-    @app.route("/health")
-    def health():
-        return {"status": "ok"}, 200
 
     return app
 
