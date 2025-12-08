@@ -1,34 +1,28 @@
-function goTo(path) {
-    window.location.href = path;
-}
+document.addEventListener("DOMContentLoaded", () => {
+    const role = localStorage.getItem("role");
+    const supplierId = localStorage.getItem("supplier_id");
+    const name = localStorage.getItem("full_name") || "";
 
-function logout() {
-    localStorage.clear();
-    window.location.href = "/";
-}
+    console.log("ROLE =", role, "SUPPLIER =", supplierId);
 
-window.onload = () => {
+    document.getElementById("welcomeUser").innerText = `Welcome, ${name}`;
 
-    const role = localStorage.getItem("user_role");
-    const supplier_id = localStorage.getItem("supplier_id");
-
-    console.log("LOGGED USER ROLE =", role, " SUPPLIER_ID =", supplier_id);
-
-    // COMMON USERS (normal staff)
-    if (role === "user") {
-        document.getElementById("adminSection").style.display = "none";
-        document.getElementById("supplierSection").style.display = "none";
-    }
-
-    // SUPPLIER ROLE
-    if (role === "supplier") {
-        document.getElementById("supplierSection").style.display = "block";
-        document.getElementById("adminSection").style.display = "none";
-    }
-
-    // ADMIN ROLE
+    // Show / hide buttons based on role
     if (role === "admin") {
-        document.getElementById("adminSection").style.display = "block";
-        document.getElementById("supplierSection").style.display = "block"; // Admins see stock register too
+        document.getElementById("btnUserMgmt").style.display = "block";
+        document.getElementById("btnProductUpdate").style.display = "block";
+        document.getElementById("btnSupplierUpdate").style.display = "block";
+        document.getElementById("btnDistributorUpdate").style.display = "block";
     }
-};
+
+    if (role === "supplier") {
+        document.getElementById("btnProductUpdate").style.display = "none";
+        document.getElementById("btnUserMgmt").style.display = "none";
+    }
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+        localStorage.clear();
+        window.location.href = "/";
+    };
+});
