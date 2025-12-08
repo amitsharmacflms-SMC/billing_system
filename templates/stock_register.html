@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stock Register</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/static/css/basic.css">
+<style>
+    .filter-box {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    select, input {
+        padding: 7px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    table {
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+    <h2>Stock Register (Ledger)</h2>
+
+    <div class="filter-box">
+        <div>
+            <label>Product</label><br>
+            <select id="productFilter">
+                <option value="">All Products</option>
+            </select>
+        </div>
+
+        <div>
+            <label>From Date</label><br>
+            <input type="date" id="fromDate">
+        </div>
+
+        <div>
+            <label>To Date</label><br>
+            <input type="date" id="toDate">
+        </div>
+
+        <div style="padding-top:18px;">
+            <button onclick="applyFilter()">Apply Filter</button>
+        </div>
+    </div>
+
+    <table class="simple-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Received (CS)</th>
+                <th>Invoice No</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody id="stockRegisterBody"></tbody>
+    </table>
+
+    <br>
+    <button onclick="goMenu()">Back to Menu</button>
+
+</div>
+
+<script src="/static/js/stock_register.js"></script>
+</body>
+</html>
