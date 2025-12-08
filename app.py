@@ -6,6 +6,10 @@ def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
 
+    from flask_jwt_extended import JWTManager
+    jwt = JWTManager(app)
+
+
     # ------------------------------
     # Initialize DB + Migrations
     # ------------------------------
@@ -36,6 +40,9 @@ def create_app():
     app.register_blueprint(supplier_bp)
     app.register_blueprint(render_bp)
     app.register_blueprint(stock_bp)
+
+
+
     # ------------------------------
     # ROOT ROUTE
     # ------------------------------
