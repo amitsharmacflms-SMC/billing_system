@@ -90,18 +90,18 @@ def create_initial_admin():
 
     hashed = generate_password_hash(data["password"])
 
-    new_admin = User(
-        name=data["AMIT SHARMA"],
-        email=data["amit@gmail.com"],
-        password=password@1,
+    user = User(
+        name=data["name"],
+        email=data["email"],
+        password=hashed,
         role="admin",
-        state=data.get("state", "Uttar Pradesh"),
+        state="UP",
         active=True
     )
-    db.session.add(new_admin)
-    db.session.commit()
 
-    return {"message": "Initial admin created"}, 201
+    db.session.add(user)
+    db.session.commit()
+    return {"message": "Admin created"}, 201
 
 
 
