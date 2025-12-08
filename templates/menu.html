@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Billing System – Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+    .menu-box {
+        width: 350px;
+        margin: 40px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .menu-item {
+        padding: 12px;
+        margin: 8px 0;
+        background: #007bff;
+        color: white;
+        border-radius: 6px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .menu-item:hover {
+        background: #0056b3;
+    }
+    .logout {
+        background: #dc3545;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="menu-box">
+    <h2>Main Menu</h2>
+
+    <div class="menu-item" onclick="goTo('/received-stock')">Received Stock</div>
+    <div class="menu-item" onclick="goTo('/create-invoice')">Create Invoice</div>
+    <div class="menu-item" onclick="goTo('/search-invoice')">Search Invoice</div>
+    <div class="menu-item" onclick="goTo('/reports')">Reports</div>
+
+    <div id="adminOptions"></div>
+
+    <div class="menu-item logout" onclick="logout()">Logout</div>
+</div>
+
+<script src="/static/js/menu.js"></script>
+</body>
+</html>

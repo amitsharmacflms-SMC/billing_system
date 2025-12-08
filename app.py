@@ -37,16 +37,21 @@ def create_app():
     app.register_blueprint(render_bp)
 
     # ------------------------------
-    # ROOT ROUTE (Fixes Railway 404)
+    # ROOT ROUTE
     # ------------------------------
     @app.route("/")
-    def index():
-        # If you want login screen:
-        # return render_template("login.html")
-        return "<h2>Billing System API is Running</h2>"
+    def login_page():
+        return render_template("login.html")
 
     # ------------------------------
-    # Health Check Route
+    # MENU ROUTE
+    # ------------------------------
+    @app.route("/menu")
+    def menu():
+        return render_template("menu.html")
+
+    # ------------------------------
+    # Health Check
     # ------------------------------
     @app.route("/health")
     def health():
