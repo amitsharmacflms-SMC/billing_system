@@ -30,15 +30,16 @@ async function login() {
         return;
     }
 
-    // Save JWT + role
+    // Save JWT token
     localStorage.setItem("token", data.access_token);
 
+    // Fetch user role using /auth/me
     const me = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` }
     }).then(r => r.json());
 
     localStorage.setItem("user_role", me.role);
 
-    // Redirect to menu
+    // Redirect
     window.location.href = "/menu";
 }
