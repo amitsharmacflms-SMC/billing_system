@@ -2,200 +2,169 @@ from flask import Blueprint, request, jsonify
 from core.database import db
 from models.stock import StockEntry
 from models.products import Product
-# NOTE: import correct invoice item model name used in your codebase
-from models.invoices import Invoice, InvoiceItemModel
+from models.invoices import Invoice
+from models.invoice_items import InvoiceItem   # ✅ Correct import
 from datetime import datetime
 from sqlalchemy import func
 
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
 
 
-# -------------------------
-# Helper: parse date (YYYY-MM-DD)
-# -------------------------
+# --------------------------------------
+# Helper: Parse date
+# --------------------------------------
 def _parse_date(d):
     if not d:
         return datetime.utcnow().date()
-    if isinstance(d, datetime):
-        return d.date()
     try:
         return datetime.strptime(d, "%Y-%m-%d").date()
-    except Exception:
-        # try other common formats
-        try:
-            return datetime.strptime(d, "%d-%m-%Y").date()
-        except Exception:
-            raise ValueError("Invalid date format, expected YYYY-MM-DD")
+    except:
+        return datetime.utcnow().date()
 
 
-# -------------------------
-# Add Stock Entry (Stock IN)
-# POST /stock/add
-# body: { product_id, date (YYYY-MM-DD optional), received_cs, invoice_no (optional), remarks (optional) }
-# -------------------------
+# --------------------------------------
+# ADD STOCK ENTRY (STOCK IN)
+# --------------------------------------
 @stock_bp.route("/add", methods=["POST"])
 def add_stock():
-    data = request.get_json(force=True, silent=True)
+    data = request.get_json()
+
     if not data:
         return jsonify({"error": "JSON payload required"}), 400
 
     product_id = data.get("product_id")
-    if product_id is None:
-        return jsonify({"error": "product_id is required"}), 400
+    received_cs = data.get("received_cs")
 
-    try:
-        product = Product.query.get(int(product_id))
-    except Exception:
-        return jsonify({"error": "invalid product_id"}), 400
+    if not product_id:
+        return jsonify({"error": "product_id required"}), 400
 
+    if not received_cs:
+        return jsonify({"error": "received_cs required"}), 400
+
+    product = Product.query.get(product_id)
     if not product:
-        return jsonify({"error": "product not found"}), 404
-
-    try:
-        received_cs = float(data.get("received_cs", 0))
-    except Exception:
-        return jsonify({"error": "received_cs must be a number"}), 400
-
-    if received_cs == 0:
-        return jsonify({"error": "received_cs should be non-zero"}), 400
-
-    try:
-        date = _parse_date(data.get("date"))
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    invoice_no = data.get("invoice_no")
-    remarks = data.get("remarks")
+        return jsonify({"error": "Product not found"}), 404
 
     entry = StockEntry(
-        product_id=product.id,
-        date=date,
-        received_cs=received_cs,
-        invoice_no=invoice_no,
-        remarks=remarks
+        product_id=product_id,
+        date=_parse_date(data.get("date")),
+        received_cs=float(received_cs),
+        invoice_no=data.get("invoice_no"),
+        remarks=data.get("remarks")
     )
 
     db.session.add(entry)
     db.session.commit()
 
-    return jsonify({
-        "message": "Stock entry added",
-        "entry_id": entry.id,
-        "product_id": product.id,
-        "product_name": product.name,
-        "received_cs": entry.received_cs,
-        "date": entry.date.isoformat()
-    }), 201
+    return jsonify({"message": "Stock Added Successfully"}), 200
 
 
-# -------------------------
-# Stock Summary for ALL PRODUCTS
-# GET /stock/summary
-# returns list: product_id, product_name, received_cs, sold_cs, current_stock_cs
-# -------------------------
+# --------------------------------------
+# STOCK SUMMARY (FULL INVENTORY)
+# --------------------------------------
 @stock_bp.route("/summary", methods=["GET"])
 def stock_summary():
-    products = Product.query.order_by(Product.name).all()
+
+    products = Product.query.all()
     result = []
 
     for p in products:
-        # Sum of received CS for product
-        received = db.session.query(func.coalesce(func.sum(StockEntry.received_cs), 0.0)) \
-            .filter(StockEntry.product_id == p.id).scalar() or 0.0
 
-        # Sum of sold PCS from invoice items (use InvoiceItemModel.qty or your model's qty field)
-        sold_pcs = db.session.query(func.coalesce(func.sum(InvoiceItemModel.qty), 0)) \
-            .filter(InvoiceItemModel.product_id == p.id).scalar() or 0
+        # Total received CS from StockEntry table
+        received_cs = db.session.query(
+            func.coalesce(func.sum(StockEntry.received_cs), 0)
+        ).filter(StockEntry.product_id == p.id).scalar()
 
-        # Convert sold pcs -> CS using pack (pcs per case). If pack is zero/None use 1 to avoid div by zero.
+        # Total sold PCS from invoice items
+        sold_pcs = db.session.query(
+            func.coalesce(func.sum(InvoiceItem.pcs), 0)
+        ).filter(InvoiceItem.product_id == p.id).scalar()
+
+        # Convert PCS → CS using product pack size
         try:
-            pack = float(p.pack) if p.pack else 1.0
+            pack = float(p.pack or 1)
             if pack == 0:
-                pack = 1.0
-        except Exception:
-            pack = 1.0
+                pack = 1
+        except:
+            pack = 1
 
-        sold_cs = float(sold_pcs) / pack
-        current_stock = float(received) - float(sold_cs)
+        sold_cs = sold_pcs / pack
+
+        current_stock = received_cs - sold_cs
 
         result.append({
             "product_id": p.id,
             "product_name": p.name,
-            "received_cs": round(float(received), 4),
-            "sold_pcs": float(sold_pcs),
-            "sold_cs": round(float(sold_cs), 4),
-            "current_stock_cs": round(float(current_stock), 4),
-            "pack": pack
+            "received_cs": round(received_cs, 3),
+            "sold_pcs": sold_pcs,
+            "sold_cs": round(sold_cs, 3),
+            "current_stock_cs": round(current_stock, 3),
+            "pack": pack,
         })
 
     return jsonify(result), 200
 
 
-# -------------------------
-# List Stock Entries (ledger)
-# GET /stock/entries
-# optional query params: product_id, limit, offset
-# -------------------------
+# --------------------------------------
+# STOCK LEDGER (LIST ENTRIES)
+# --------------------------------------
 @stock_bp.route("/entries", methods=["GET"])
 def stock_entries():
-    product_id = request.args.get("product_id", type=int)
-    limit = request.args.get("limit", default=200, type=int)
-    offset = request.args.get("offset", default=0, type=int)
 
+    product_id = request.args.get("product_id")
     q = StockEntry.query.order_by(StockEntry.date.desc(), StockEntry.id.desc())
+
     if product_id:
         q = q.filter(StockEntry.product_id == product_id)
 
-    total = q.count()
-    rows = q.offset(offset).limit(limit).all()
+    rows = q.all()
+    data = []
 
-    items = []
     for r in rows:
-        items.append({
+        data.append({
             "id": r.id,
             "product_id": r.product_id,
-            "product_name": getattr(r.product, "name", None),
-            "date": r.date.isoformat() if hasattr(r.date, "isoformat") else str(r.date),
-            "received_cs": float(r.received_cs),
+            "product_name": r.product.name if r.product else "",
+            "date": r.date.strftime("%Y-%m-%d"),
+            "received_cs": r.received_cs,
             "invoice_no": r.invoice_no,
             "remarks": r.remarks
         })
 
-    return jsonify({"total": total, "count": len(items), "rows": items}), 200
+    return jsonify(data), 200
 
 
-# -------------------------
-# Current stock for a single product
-# GET /stock/product/<int:product_id>/current
-# -------------------------
+# --------------------------------------
+# CURRENT STOCK FOR SINGLE PRODUCT
+# --------------------------------------
 @stock_bp.route("/product/<int:product_id>/current", methods=["GET"])
-def product_current(product_id):
+def stock_product_current(product_id):
+
     p = Product.query.get(product_id)
     if not p:
-        return jsonify({"error": "product not found"}), 404
+        return jsonify({"error": "Product not found"}), 404
 
-    received = db.session.query(func.coalesce(func.sum(StockEntry.received_cs), 0.0)) \
-        .filter(StockEntry.product_id == p.id).scalar() or 0.0
+    received_cs = db.session.query(
+        func.coalesce(func.sum(StockEntry.received_cs), 0)
+    ).filter(StockEntry.product_id == product_id).scalar()
 
-    sold_pcs = db.session.query(func.coalesce(func.sum(InvoiceItemModel.qty), 0)) \
-        .filter(InvoiceItemModel.product_id == p.id).scalar() or 0
+    sold_pcs = db.session.query(
+        func.coalesce(func.sum(InvoiceItem.pcs), 0)
+    ).filter(InvoiceItem.product_id == product_id).scalar()
 
-    try:
-        pack = float(p.pack) if p.pack else 1.0
-        if pack == 0:
-            pack = 1.0
-    except Exception:
-        pack = 1.0
+    pack = float(p.pack or 1)
+    if pack == 0:
+        pack = 1
 
-    sold_cs = float(sold_pcs) / pack
-    current_stock = float(received) - float(sold_cs)
+    sold_cs = sold_pcs / pack
+    current_stock = received_cs - sold_cs
 
     return jsonify({
         "product_id": p.id,
         "product_name": p.name,
-        "received_cs": round(float(received), 4),
-        "sold_pcs": float(sold_pcs),
-        "sold_cs": round(float(sold_cs), 4),
-        "current_stock_cs": round(float(current_stock), 4),
+        "received_cs": round(received_cs, 3),
+        "sold_pcs": sold_pcs,
+        "sold_cs": round(sold_cs, 3),
+        "current_stock_cs": round(current_stock, 3),
         "pack": pack
     }), 200
