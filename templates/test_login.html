@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>TEST LOGIN API</h2>
+
+<input id="email" placeholder="email"><br><br>
+<input id="password" placeholder="password" type="password"><br><br>
+
+<button onclick="testLogin()">TEST LOGIN</button>
+
+<pre id="output"></pre>
+
+<script>
+async function testLogin() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, password })
+    });
+
+    let text = await res.text();
+    document.getElementById("output").innerText = text;
+}
+</script>
+
+</body>
+</html>

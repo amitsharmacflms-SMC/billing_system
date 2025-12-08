@@ -73,3 +73,37 @@ def delete_user(uid):
     if not u: return jsonify({"error":"not found"}), 404
     db.session.delete(u); db.session.commit()
     return jsonify({"message":"deleted"})
+
+
+# -----------------------------------------------------------
+# TEMPORARY ROUTE: CREATE FIRST ADMIN USER
+# REMOVE AFTER FIRST USE
+# -----------------------------------------------------------
+@user_bp.route("/create-initial-admin", methods=["POST"])
+def create_initial_admin():
+    from werkzeug.security import generate_password_hash
+    data = request.get_json()
+
+    # Only allow creation if no admin exists
+    existing = User.query.filter_by(role="admin").first()
+    if existing:
+        return {"error": "Admin already exists. Disable this route."}, 400
+
+    hashed = generate_password_hash(data["password"])
+
+    new_user = User(
+        name=data["name"],
+        email=data["amit@gmail.com"],
+        password=password,
+        role="admin",
+        state=data.get("state", "UP"),
+        active=True
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return {"message": "Initial admin created successfully"}, 201
+
+
+

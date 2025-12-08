@@ -48,11 +48,21 @@ def create_app():
     # ------------------------------
     @app.route("/")
     def login_page():
-        return render_template("login.html")
+    return render_template("login.html")
+
+
+    @app.route("/test-login")
+    def test_login_page():
+    return render_template("test_login.html")
+
 
     # ------------------------------
     # MENU ROUTE
     # ------------------------------
+
+
+
+
     @app.route("/menu")
     def menu():
         return render_template("menu.html")
