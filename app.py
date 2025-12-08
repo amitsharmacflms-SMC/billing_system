@@ -23,7 +23,7 @@ def create_app():
     from routes.ewaybill_routes import eway_bp
     from routes.supplier_routes import supplier_bp
     from routes.render_invoice import render_bp
-
+    from routes.stock_routes import stock_bp
     # ------------------------------
     # Register Blueprints
     # ------------------------------
@@ -35,7 +35,7 @@ def create_app():
     app.register_blueprint(eway_bp)
     app.register_blueprint(supplier_bp)
     app.register_blueprint(render_bp)
-
+    app.register_blueprint(stock_bp)
     # ------------------------------
     # ROOT ROUTE
     # ------------------------------

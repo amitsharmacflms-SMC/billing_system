@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tax Invoice</title>
+<title>Tax Invoice – {{ invoice.invoice_number }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
 /* ======== SIMPLE PROFESSIONAL INVOICE ======== */
 :root{
     --text:#1e293b;
@@ -16,7 +15,6 @@
     --light:#fafafa;
 }
 
-/* Page */
 body{
     font-family:Arial, sans-serif;
     font-size:12px;
@@ -49,7 +47,7 @@ body{
     border-bottom:1px solid var(--border);
 }
 
-/* Three Column Party Table */
+/* Parties table */
 .party-table{
     width:100%;
     border-collapse:collapse;
@@ -110,24 +108,6 @@ table.items{
     font-weight:600;
 }
 
-/* Totals table */
-.total-wrap{
-    display:flex;
-    justify-content:flex-end;
-}
-.total-table{
-    width:340px;
-    border-collapse:collapse;
-}
-.total-table td{
-    padding:6px 8px;
-    border:1px solid var(--border);
-}
-.total-label{
-    font-weight:600;
-    text-align:right;
-}
-
 /* GST Breakup */
 .gst-table{
     width:100%;
@@ -171,11 +151,11 @@ table.items{
     font-size:11.5px;
 }
 
-/* Print Rules */
+/* Print */
 @media print{
-    thead{display:table-header-group;}
-    tfoot{display:table-footer-group;}
-    tr{page-break-inside:avoid;}
+    thead{ display:table-header-group; }
+    tfoot{ display:table-footer-group; }
+    tr{ page-break-inside:avoid; }
 }
 </style>
 </head>
@@ -184,9 +164,10 @@ table.items{
 
 <!-- Header -->
 <div class="header">
-    <img src="static/onlylogo.png" alt="">
+    <img src="/static/onlylogo.png" alt="Company Logo">
     <div class="header-title">TAX INVOICE</div>
 </div>
+
 
 <!-- Parties -->
 <div class="section-title">Invoice Parties</div>
@@ -194,39 +175,39 @@ table.items{
 <tr>
 <td>
     <div class="party-title">Supplier</div>
-    M/S BALAJEE TRADING CO<br>
-    PO-NAGESWARPUR (SADAR-GHAT)<br>
-    SAHAPUR, (NEAR CHATIAN-MORE)<br>
-    MALDA–732142<br>
-    Mob: 9734103692<br>
-    GSTIN: 19AGXPA6418M1ZQ<br>
-    State Code: 19<br>
-    E-mail: mahabir_y2k@yahoo.com
+    {{ invoice.supplier.name }}<br>
+    {{ invoice.supplier.address | replace('\n', '<br>') | safe }}<br>
+    Mob: {{ invoice.supplier.phone or '-' }}<br>
+    GSTIN: {{ invoice.supplier.gstin }}<br>
+    State Code: {{ invoice.distributor.state_code or '' }}<br>
+    Email: {{ invoice.supplier.email or '-' }}
 </td>
+
 <td>
     <div class="party-title">Buyer (Bill To)</div>
-    ABBAS ANSARI<br>
-    MASHALDA BAZAR, KARIALI<br>
-    Mob: 9732701725 / 9614496092<br>
-    State: West Bengal (19)<br>
-    Place of Supply: West Bengal
+    {{ invoice.distributor.name }}<br>
+    {{ invoice.distributor.address | replace('\n', '<br>') | safe }}<br>
+    GSTIN: {{ invoice.distributor.gstin or '-' }}<br>
+    State: {{ invoice.distributor.state or '-' }} ({{ invoice.distributor.state_code or '-' }})<br>
 </td>
+
 <td>
     <div class="party-title">Ship To</div>
-    ABBAS ANSARI<br>
-    MASHALDA BAZAR, KARIALI<br>
-    Mob: 9732701725 / 9614496092<br>
-    State: West Bengal (19)
+    {{ invoice.distributor.name }}<br>
+    {{ invoice.distributor.address | replace('\n', '<br>') | safe }}<br>
+    GSTIN: {{ invoice.distributor.gstin or '-' }}<br>
+    State: {{ invoice.distributor.state or '-' }}
 </td>
 </tr>
 </table>
+
 
 <!-- Invoice Meta -->
 <div class="section-title">Invoice Details</div>
 <table class="meta-table">
 <tr>
-    <td class="meta-label">Invoice No:</td><td>MSD/25-26/0299</td>
-    <td class="meta-label">Date:</td><td>25-Oct-2025</td>
+    <td class="meta-label">Invoice No:</td><td>{{ invoice.invoice_number }}</td>
+    <td class="meta-label">Date:</td><td>{{ invoice.date }}</td>
 </tr>
 <tr>
     <td class="meta-label">Reverse Charge:</td><td>No</td>
@@ -238,8 +219,10 @@ table.items{
 </tr>
 </table>
 
+
 <!-- Items -->
 <div class="section-title">Items</div>
+
 <table class="items">
 <thead>
 <tr>
@@ -257,28 +240,36 @@ table.items{
 </thead>
 
 <tbody>
-<tr><td>1</td><td>Dairy Creamer MSD 5RS</td><td>04022990</td><td>1890</td><td>3</td><td>2447.62</td><td>1%</td><td>7269.43</td><td>5%</td><td>7632.90</td></tr>
-<tr><td>2</td><td>Dairy Creamer 300×19G</td><td>04022990</td><td>3000</td><td>10</td><td>2285.72</td><td>1%</td><td>22628.63</td><td>5%</td><td>23760.07</td></tr>
-<tr><td>3</td><td>Dairy Creamer 20×500GM</td><td>04022990</td><td>100</td><td>5</td><td>3809.53</td><td>1%</td><td>18857.17</td><td>5%</td><td>19800.03</td></tr>
-<tr><td>4</td><td>Dairy Creamer 100×100GM</td><td>04022990</td><td>500</td><td>5</td><td>3809.53</td><td>1%</td><td>18857.17</td><td>5%</td><td>19800.03</td></tr>
-<tr><td>5</td><td>Double Cow 5MRP</td><td>04022990</td><td>1200</td><td>2</td><td>2000</td><td>1%</td><td>3960</td><td>5%</td><td>4158</td></tr>
-<tr><td>6</td><td>Dairy Creamer 100×100GM</td><td>04022990</td><td>980</td><td>41</td><td>3809.53</td><td>1%</td><td>154628.80</td><td>5%</td><td>162360.24</td></tr>
-<tr><td>7</td><td>Dairy Creamer 500GRAM</td><td>04022990</td><td>4100</td><td>49</td><td>3809.53</td><td>1%</td><td>184800.30</td><td>5%</td><td>194040.32</td></tr>
+{% for it in invoice.items %}
+<tr>
+    <td>{{ loop.index }}</td>
+    <td>{{ it.description }}</td>
+    <td>{{ it.hsn or '' }}</td>
+    <td>{{ it.qty }}</td>
+    <td>{{ it.cs or 0 }}</td>
+    <td>{{ "%.2f"|format(it.rate) }}</td>
+    <td>{{ it.disc_percent or 0 }}%</td>
+    <td>{{ "%.2f"|format(it.taxable_value) }}</td>
+    <td>{{ "%.2f"|format(it.gst_percent) }}</td>
+    <td>{{ "%.2f"|format(it.gst_amount + it.taxable_value) }}</td>
+</tr>
+{% endfor %}
 </tbody>
 
 <tfoot>
 <tr>
     <td colspan="3"><b>Total</b></td>
-    <td><b>13770 PCS</b></td>
-    <td><b>115 CS</b></td>
+    <td><b>{{ invoice.total_pcs or '' }}</b></td>
+    <td><b>{{ invoice.total_cs or '' }}</b></td>
     <td></td>
     <td></td>
-    <td><b>₹ 4,11,001.50</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.taxable_total) }}</b></td>
     <td></td>
-    <td><b>₹ 4,31,551.00</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.grand_total) }}</b></td>
 </tr>
 </tfoot>
 </table>
+
 
 <!-- GST BREAKUP -->
 <div class="section-title">GST Breakup (HSN Summary)</div>
@@ -288,53 +279,57 @@ table.items{
 <tr>
     <th>HSN Code</th>
     <th>Taxable Value</th>
-    <th>CGST 2.5%</th>
-    <th>SGST 2.5%</th>
+    <th>CGST</th>
+    <th>SGST</th>
     <th>Total GST</th>
     <th>GST%</th>
 </tr>
 </thead>
 
 <tbody>
+{% for rate, row in invoice.gst_summary.items() %}
 <tr>
-    <td>04022990</td>
-    <td>4,11,001.50</td>
-    <td>10,275.04</td>
-    <td>10,275.04</td>
-    <td>20,550.08</td>
-    <td>5%</td>
+    <td>{{ rate }}</td>
+    <td>{{ "%.2f"|format(row.taxable_value) }}</td>
+    <td>{{ "%.2f"|format(row.cgst) }}</td>
+    <td>{{ "%.2f"|format(row.sgst) }}</td>
+    <td>{{ "%.2f"|format(row.gst_amount) }}</td>
+    <td>{{ "%.2f"|format(row.gst_percent) }}%</td>
 </tr>
+{% endfor %}
 </tbody>
 
 <tfoot>
 <tr>
     <td><b>Total</b></td>
-    <td><b>₹ 4,11,001.50</b></td>
-    <td><b>₹ 10,275.04</b></td>
-    <td><b>₹ 10,275.04</b></td>
-    <td><b>₹ 20,550.08</b></td>
-    <td><b>5%</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.taxable_total) }}</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.total_cgst or 0) }}</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.total_sgst or 0) }}</b></td>
+    <td><b>{{ "%.2f"|format(invoice.totals.gst_total) }}</b></td>
+    <td></td>
 </tr>
 </tfoot>
 </table>
 
-<!-- AMOUNT WORDS -->
+
+<!-- AMOUNT IN WORDS -->
 <div class="words">
 <b>Amount in Words:</b><br>
-INR Four Lakh Thirty One Thousand Five Hundred Fifty One Only
+{{ invoice.amount_in_words }}
 </div>
+
 
 <!-- DECLARATION -->
 <div class="declaration">
-We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.<br>
+We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
 </div>
+
 
 <!-- SIGN -->
 <div class="sign">
     <div><br>Customer Seal & Signature</div>
-    <div>For <b>M/S BALAJEE TRADING CO</b><br><br><br>Authorized Signatory</div>
+    <div>For <b>{{ invoice.supplier.name }}</b><br><br><br>Authorized Signatory</div>
 </div>
-
 
 <div style="text-align:center; margin-top:10px; font-size:11.5px; color:#525252;">
     <b>This is a Computer Generated Invoice.</b>
