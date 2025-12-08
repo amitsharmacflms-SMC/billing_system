@@ -50,6 +50,36 @@ def create_app():
     def menu():
         return render_template("menu.html")
 
+    @app.route("/received-stock")
+    def received_stock():
+        return render_template("received_stock.html")
+
+    @app.route("/create-invoice")
+    def create_invoice_page():
+        return render_template("create_invoice.html")
+
+    @app.route("/search-invoice")
+    def search_invoice():
+        return render_template("search_invoice.html")
+
+    @app.route("/reports")
+    def reports():
+        return render_template("reports.html")
+
+    @app.route("/product-update")
+    def product_update():
+        return render_template("product_update.html")
+
+    @app.route("/suppliers-update")
+    def suppliers_update():
+        return render_template("suppliers_update.html")
+
+    @app.route("/distributors-update")
+    def distributors_update():
+        return render_template("distributors_update.html")
+
+
+
     # ------------------------------
     # Health Check
     # ------------------------------

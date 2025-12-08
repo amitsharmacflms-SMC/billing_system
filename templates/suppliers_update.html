@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Suppliers Update</title><link rel="stylesheet" href="/static/css/basic.css"></head>
+<body>
+<div class="page">
+  <h2>Suppliers Update (Admin)</h2>
+  <div>
+    <input id="s_name" placeholder="Name"/><input id="s_city" placeholder="City"/>
+    <input id="s_state" placeholder="State"/><input id="s_gstin" placeholder="GSTIN"/>
+    <button id="addSupplier">Add Supplier</button>
+  </div>
+  <table class="simple-table"><thead><tr><th>ID</th><th>Name</th><th>City</th><th>State</th><th>GSTIN</th><th>Action</th></tr></thead>
+    <tbody id="supBody"></tbody>
+  </table>
+  <button onclick="goMenu()">Back</button>
+</div>
+<script src="/static/js/suppliers_update.js"></script>
+</body></html>

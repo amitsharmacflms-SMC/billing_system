@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Product Update</title><link rel="stylesheet" href="/static/css/basic.css"></head>
+<body>
+  <div class="page">
+    <h2>Product Update (Admin)</h2>
+    <div>
+      <input id="p_name" placeholder="Name"/><input id="p_hsn" placeholder="HSN"/>
+      <input id="p_rate" placeholder="Rate" type="number"/><input id="p_pack" placeholder="Pack"/>
+      <button id="addProd">Add Product</button>
+    </div>
+    <table class="simple-table"><thead><tr><th>ID</th><th>Name</th><th>HSN</th><th>Rate</th><th>Pack</th><th>Actions</th></tr></thead>
+      <tbody id="prodBody"></tbody>
+    </table>
+    <button onclick="goMenu()">Back</button>
+  </div>
+<script src="/static/js/product_update.js"></script>
+</body>
+</html>
