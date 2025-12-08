@@ -84,26 +84,24 @@ def create_initial_admin():
     from werkzeug.security import generate_password_hash
     data = request.get_json()
 
-    # Only allow creation if no admin exists
-    existing = User.query.filter_by(role="admin").first()
-    if existing:
-        return {"error": "Admin already exists. Disable this route."}, 400
+    existing_admin = User.query.filter_by(role="admin").first()
+    if existing_admin:
+        return {"error": "Admin already exists"}, 400
 
     hashed = generate_password_hash(data["password"])
 
-    new_user = User(
-        name=data["name"],
+    new_admin = User(
+        name=data["AMIT SHARMA"],
         email=data["amit@gmail.com"],
-        password=password,
+        password=password@1,
         role="admin",
-        state=data.get("state", "UP"),
+        state=data.get("state", "Uttar Pradesh"),
         active=True
     )
-
-    db.session.add(new_user)
+    db.session.add(new_admin)
     db.session.commit()
 
-    return {"message": "Initial admin created successfully"}, 201
+    return {"message": "Initial admin created"}, 201
 
 
 
