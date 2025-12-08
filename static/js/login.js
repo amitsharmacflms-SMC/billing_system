@@ -9,6 +9,7 @@ async function login() {
     });
 
     const data = await res.json();
+    console.log("SERVER RESPONSE:", data);
 
     if (!res.ok) {
         alert(data.error || "Login failed");

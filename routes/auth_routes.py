@@ -29,24 +29,24 @@ def login():
     if not check_password_hash(user.password, password):
         return {"error": "Invalid Email or Password"}, 401
 
-    # JWT Token includes role, state, supplier_id
-    token = create_access_token(
-        identity=user.id,
-        additional_claims={
-            "role": user.role,
-            "state": user.state,
-            "supplier_id": user.supplier_id
-        },
-        expires_delta=timedelta(days=1)
-    )
+    from flask_jwt_extended import create_access_token
 
-    # MUST return these fields for menu.js to work
-    return jsonify({
+    # CONTENT FOR TOKEN (required by frontend)
+    payload = {
+        "role": user.role,
+        "state": user.state,
+        "supplier_id": user.supplier_id
+    }
+
+    token = create_access_token(identity=user.id, additional_claims=payload)
+
+    # 🚨 MUST MATCH login.js EXACTLY
+    return {
         "access_token": token,
         "role": user.role,
         "state": user.state,
         "supplier_id": user.supplier_id
-    }), 200
+    }, 200
 
 
 # ----------------------------------------------------------
