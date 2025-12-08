@@ -1,20 +1,17 @@
-from datetime import datetime
 from core.database import db
-from passlib.hash import bcrypt
+from datetime import datetime
 
 class User(db.Model):
     __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
-    full_name = db.Column(db.String(255))
-    role = db.Column(db.String(50), default="superstockist")  # admin, superstockist, distributor
-    is_active = db.Column(db.Boolean, default=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default="user")   # admin / supplier / user
+    state = db.Column(db.String(50), nullable=True)   # e.g. "UP", "MP"
+    supplier_id = db.Column(db.Integer, db.ForeignKey("suppliers.id"), nullable=True)  # For supplier users
+    active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def set_password(self, password):
-        self.password_hash = bcrypt.hash(password)
-
-    def verify_password(self, password):
-        return bcrypt.verify(password, self.password_hash)
+    supplier = db.relationship("Supplier", backref="users", foreign_keys=[supplier_id])

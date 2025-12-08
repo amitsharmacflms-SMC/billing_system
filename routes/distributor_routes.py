@@ -1,33 +1,25 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from core.database import db
 from models.distributors import Distributor
 
 distributor_bp = Blueprint("distributors", __name__, url_prefix="/distributors")
 
-# ---------------------------------------------------
-# GET ALL DISTRIBUTORS
-# ---------------------------------------------------
 @distributor_bp.route("/", methods=["GET"])
-def get_all_distributors():
-    distributors = Distributor.query.all()
-    data = []
+def list_distributors():
+    items = Distributor.query.order_by(Distributor.name).all()
+    return jsonify([{
+        "id": d.id, "name": d.name, "city": d.city, "state": d.state,
+        "gstin": d.gstin, "supplier_id": d.supplier_id
+    } for d in items])
 
-    for d in distributors:
-        data.append({
-            "id": d.id,
-            "unique_key": d.unique_key,
-            "name": d.name,
-            "address": d.address,
-            "city": d.city,
-            "state": d.state,
-            "pincode": d.pincode,
-            "gstin": d.gstin,
-            "contact_person": d.contact_person,
-            "phone": d.phone,
-            "email": d.email
-        })
+@distributor_bp.route("/by-supplier/<int:supplier_id>", methods=["GET"])
+def distributors_by_supplier(supplier_id):
+    items = Distributor.query.filter_by(supplier_id=supplier_id).order_by(Distributor.name).all()
+    return jsonify([{
+        "id": d.id, "name": d.name, "city": d.city, "state": d.state, "gstin": d.gstin
+    } for d in items])
 
-    return jsonify(data)
+# keep your existing add/update/delete endpoints as is but ensure they set supplier_id if provided
 
 # ---------------------------------------------------
 # GET SINGLE DISTRIBUTOR
