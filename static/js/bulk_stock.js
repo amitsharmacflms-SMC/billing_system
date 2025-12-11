@@ -16,12 +16,14 @@ async function loadProducts() {
             <td>
                 <input type="number" 
                        id="qty_${p.id}" 
-                       step="0.01" 
-                       placeholder="0">
+                       step="0.01"
+                       min="0"
+                       placeholder="0.00">
             </td>
         </tr>
     `).join("");
 }
+
 
 async function submitStock() {
     const token = localStorage.getItem("token");
@@ -30,11 +32,10 @@ async function submitStock() {
     const bill_date = document.getElementById("bill_date").value;
 
     if (!bill_no || !bill_date) {
-        alert("Enter bill number and date");
+        alert("Enter bill number and bill date.");
         return;
     }
 
-    // Collect all qty > 0
     let rows = document.querySelectorAll("input[id^='qty_']");
     let entries = [];
 
@@ -47,7 +48,7 @@ async function submitStock() {
     });
 
     if (entries.length === 0) {
-        alert("Enter at least one quantity");
+        alert("Please enter at least 1 quantity.");
         return;
     }
 
