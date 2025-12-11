@@ -9,18 +9,18 @@ def create_app():
     app.config.from_object(Config)
 
     # ------------------------------
-    # INIT JWT  (REQUIRED)
+    # INIT JWT
     # ------------------------------
     jwt = JWTManager(app)
 
     # ------------------------------
-    # Initialize DB + Migrations
+    # DB + MIGRATIONS
     # ------------------------------
     db.init_app(app)
     migrate.init_app(app, db)
 
     # ------------------------------
-    # Import Blueprints
+    # IMPORT BLUEPRINTS
     # ------------------------------
     from routes.auth_routes import auth_bp
     from routes.invoice_routes import invoice_bp
@@ -34,7 +34,7 @@ def create_app():
     from routes.supplier_mapping_routes import map_bp
 
     # ------------------------------
-    # Register Blueprints
+    # REGISTER BLUEPRINTS
     # ------------------------------
     app.register_blueprint(auth_bp)
     app.register_blueprint(invoice_bp)
@@ -48,7 +48,7 @@ def create_app():
     app.register_blueprint(map_bp)
 
     # ------------------------------
-    # HTML Routes
+    # FRONT-END ROUTES (HTML PAGES)
     # ------------------------------
     @app.route("/")
     def login_page():
@@ -58,22 +58,61 @@ def create_app():
     def menu_page():
         return render_template("menu.html")
 
-    @app.route("/test-login")
-    def test_login_page():
-        return render_template("test_login.html")
+    # RECEIVED STOCK
+    @app.route("/received-stock")
+    def received_stock_page():
+        return render_template("received_stock.html")
+
+    # STOCK REGISTER
+    @app.route("/stock-register")
+    def stock_register_page():
+        return render_template("stock_register.html")
+
+    # CREATE INVOICE PAGE
+    @app.route("/invoice/create")
+    def invoice_create_page():
+        return render_template("invoice.html")
+
+    # SEARCH INVOICE PAGE
+    @app.route("/invoice/search")
+    def invoice_search_page():
+        return render_template("invoice_search.html")
+
+    # REPORTS PAGE
+    @app.route("/reports")
+    def reports_page():
+        return render_template("reports.html")
+
+    # USER MANAGEMENT
+    @app.route("/users/manage")
+    def users_manage_page():
+        return render_template("user_management.html")
+
+    # PRODUCT MANAGEMENT
+    @app.route("/products/manage")
+    def products_manage_page():
+        return render_template("product_update.html")
+
+    # SUPPLIER MANAGEMENT
+    @app.route("/suppliers/manage")
+    def suppliers_manage_page():
+        return render_template("suppliers_update.html")
+
+    # DISTRIBUTOR MANAGEMENT
+    @app.route("/distributors/manage")
+    def distributors_manage_page():
+        return render_template("distributors_update.html")
 
     return app
 
 
-
 # --------------------------------------------------
-# Create App Instance
+# CREATE APP INSTANCE
 # --------------------------------------------------
 app = create_app()
 
-
 # --------------------------------------------------
-# REQUIRED FOR RAILWAY DEPLOYMENT
+# RAILWAY DEPLOYMENT SERVER
 # --------------------------------------------------
 if __name__ == "__main__":
     import os
