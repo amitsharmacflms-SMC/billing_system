@@ -2,6 +2,11 @@ document.addEventListener("DOMContentLoaded", loadProducts);
 
 async function loadProducts() {
     const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Session expired. Login again.");
+        location.href = "/";
+        return;
+    }
 
     let res = await fetch("/stock/all-products", {
         headers: { "Authorization": "Bearer " + token }
@@ -24,22 +29,20 @@ async function loadProducts() {
     `).join("");
 }
 
-
 async function submitStock() {
     const token = localStorage.getItem("token");
 
     const bill_no = document.getElementById("bill_no").value;
     const bill_date = document.getElementById("bill_date").value;
+    const received_date = document.getElementById("received_date").value;
 
-    if (!bill_no || !bill_date) {
-        alert("Enter bill number and bill date.");
+    if (!bill_no || !bill_date || !received_date) {
+        alert("Enter Bill No, Bill Date & Received Date");
         return;
     }
 
-    let rows = document.querySelectorAll("input[id^='qty_']");
     let entries = [];
-
-    rows.forEach(row => {
+    document.querySelectorAll("input[id^='qty_']").forEach(row => {
         let qty = parseFloat(row.value);
         if (qty > 0) {
             let product_id = row.id.replace("qty_", "");
@@ -48,13 +51,14 @@ async function submitStock() {
     });
 
     if (entries.length === 0) {
-        alert("Please enter at least 1 quantity.");
+        alert("Enter at least one quantity");
         return;
     }
 
     let payload = {
         bill_no,
         bill_date,
+        received_date,
         entries
     };
 
