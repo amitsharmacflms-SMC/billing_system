@@ -1,80 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Madhusudan Billing – Login</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-    body {
-        background: #f5f6fa;
-        font-family: Arial, sans-serif;
-    }
-    .login-box {
-        width: 350px;
-        margin: 100px auto;
-        padding: 30px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    .logo {
-        width: 120px;
-        margin-bottom: 15px;
-    }
-    input {
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-    }
-    button {
-        width: 100%;
-        padding: 12px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-    }
-    button:hover {
-        background: #0056b3;
-    }
-    .error {
-        color: red;
-        margin-top: 10px;
-    }
-    .showpass {
-        float: right;
-        margin-top: -30px;
-        margin-right: 10px;
-        cursor: pointer;
-        font-size: 12px;
-        color: #007bff;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/css/basic.css">
+    <style>
+        .login-box {
+            width: 380px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
+            color: white;
+            border: none;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { opacity: 0.9; }
+    </style>
 </head>
 
 <body>
 
 <div class="login-box">
-    <img src="/static/images/madhusudan_logo.png" class="logo" alt="Madhusudan Logo">
+
+    <img src="/static/images/madhusudan_logo.png" alt="Logo" style="width:120px; margin-bottom:15px;">
 
     <h2>Login</h2>
 
-    <input type="email" id="email" placeholder="Email" />
+    <!-- IMPORTANT: FORM ID MUST MATCH login.js -->
+    <form id="loginForm">
 
-    <div style="position: relative;">
-        <input type="password" id="password" placeholder="Password" />
-        <span class="showpass" onclick="togglePassword()">Show</span>
-    </div>
+        <input type="email" id="email" placeholder="Email" required>
 
-    <button onclick="login()">Login</button>
+        <input type="password" id="password" placeholder="Password" required>
 
-    <p id="error" class="error"></p>
+        <button type="submit">Login</button>
+
+    </form>
+
 </div>
 
 <script src="/static/js/login.js"></script>
