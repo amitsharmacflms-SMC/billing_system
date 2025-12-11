@@ -4,7 +4,6 @@ from models.users import User
 from werkzeug.security import check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 
-
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
@@ -32,20 +31,19 @@ def login():
     if not user.is_active:
         return {"error": "User disabled"}, 403
 
-    # Create JWT with custom claims
+    # Create JWT with correct string identity
     access_token = create_access_token(
-    identity=str(user.id),
-    additional_claims={
-        "role": user.role,
-        "supplier_id": user.supplier_id,
-        "state": user.state
-    }
-)
-
+        identity=str(user.id),
+        additional_claims={
+            "role": user.role,
+            "supplier_id": user.supplier_id,
+            "state": user.state
+        }
+    )
 
     return {
         "message": "Login successful",
-        "token": token,
+        "token": access_token,
         "role": user.role,
         "supplier_id": user.supplier_id,
         "state": user.state,
@@ -60,7 +58,7 @@ def login():
 @jwt_required()
 def me():
     claims = get_jwt()
-    user_id = claims["sub"]
+    user_id = claims["sub"]  # always string
 
     user = User.query.get(user_id)
 
