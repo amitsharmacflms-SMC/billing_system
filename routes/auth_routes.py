@@ -33,14 +33,15 @@ def login():
         return {"error": "User disabled"}, 403
 
     # Create JWT with custom claims
-    token = create_access_token(
-        identity=user.id,
-        additional_claims={
-            "role": user.role,
-            "supplier_id": user.supplier_id,
-            "state": user.state
-        }
-    )
+    access_token = create_access_token(
+    identity=str(user.id),
+    additional_claims={
+        "role": user.role,
+        "supplier_id": user.supplier_id,
+        "state": user.state
+    }
+)
+
 
     return {
         "message": "Login successful",
