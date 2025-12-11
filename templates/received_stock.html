@@ -1,22 +1,63 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Add Stock</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="/static/css/basic.css">
+    <title>Received Stock</title>
+    <link rel="stylesheet" href="/static/css/basic.css">
+    <style>
+        .box {
+            width: 450px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
+            color: white;
+            font-size: 17px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { opacity: 0.9; }
+    </style>
 </head>
-<body>
-  <div class="page">
-    <h2>Add Stock</h2>
-    <p>Shows product stock (current data from products table)</p>
-    <table id="stockTable" class="simple-table">
-      <thead><tr><th>ID</th><th>Name</th><th>Pack</th><th>Rate</th><th>MRP</th><th>Stock (pcs)</th></tr></thead>
-      <tbody id="stockBody"></tbody>
-    </table>
-    <p><button onclick="goMenu()">Back to Menu</button></p>
-  </div>
 
-  <script src="/static/js/received_stock.js"></script>
+<body>
+
+<div class="box">
+    <h2>Received Stock Entry</h2>
+
+    <label>Product</label>
+    <select id="product"></select>
+
+    <label>Bill Number</label>
+    <input type="text" id="bill_no">
+
+    <label>Bill Date</label>
+    <input type="date" id="bill_date">
+
+    <label>Received Qty (CS)</label>
+    <input type="number" id="received_cs" step="0.01">
+
+    <label>Remarks</label>
+    <textarea id="remarks"></textarea>
+
+    <button onclick="saveStock()">Save Stock</button>
+</div>
+
+<script src="/static/js/stock.js"></script>
+
 </body>
 </html>

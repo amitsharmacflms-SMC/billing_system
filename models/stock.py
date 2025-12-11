@@ -6,9 +6,13 @@ class StockEntry(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
-    date = db.Column(db.Date, default=datetime.utcnow)
+
+    bill_no = db.Column(db.String(50), nullable=False)
+    bill_date = db.Column(db.Date, nullable=False)
+
     received_cs = db.Column(db.Float, nullable=False)
-    invoice_no = db.Column(db.String(50))
     remarks = db.Column(db.String(200))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     product = db.relationship("Product", backref="stock_entries")
