@@ -1,10 +1,14 @@
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const form = document.getElementById("loginForm");
+    if (!form) return;  // Prevent script errors on other pages
 
-    try {
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
         const res = await fetch("/auth/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -12,13 +16,11 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         });
 
         const data = await res.json();
-
         if (!res.ok) {
             alert(data.error || "Login failed");
             return;
         }
 
-        // Save JWT + role + supplier + state
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
         localStorage.setItem("supplier_id", data.supplier_id);
@@ -26,9 +28,5 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         localStorage.setItem("full_name", data.full_name);
 
         window.location.href = "/menu";
-
-    } catch (err) {
-        alert("Network error");
-        console.error(err);
-    }
+    });
 });
