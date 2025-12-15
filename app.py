@@ -107,6 +107,8 @@ def create_app():
     def distributors_manage_page():
         return render_template("distributors_update.html")
 
+    print(app.url_map)
+
     return app
 
 
