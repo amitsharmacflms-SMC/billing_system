@@ -1,39 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Monthly Stock Register</title>
+    <title>Yearly Stock Register</title>
     <link rel="stylesheet" href="/static/css/basic.css">
 </head>
 <body>
 
-<h2>Monthly Stock Register</h2>
+<h2>Yearly Stock Register</h2>
 
-<select id="product"></select>
-
-<select id="month">
-  <option value="1">Jan</option><option value="2">Feb</option>
-  <option value="3">Mar</option><option value="4">Apr</option>
-  <option value="5">May</option><option value="6">Jun</option>
-  <option value="7">Jul</option><option value="8">Aug</option>
-  <option value="9">Sep</option><option value="10">Oct</option>
-  <option value="11">Nov</option><option value="12">Dec</option>
-</select>
-
-<input type="number" id="year" value="2025" />
-
-<button onclick="loadRegister()">Load</button>
+<div style="margin-bottom:10px;">
+    <select id="product"></select>
+    <input type="number" id="year" value="2025" />
+    <button onclick="loadYearlyRegister()">Load</button>
+</div>
 
 <table border="1" width="100%">
-  <thead>
-    <tr>
-      <th>Month</th>
-      <th>Opening Qty</th>
-      <th>Received Qty</th>
-      <th>Out Qty</th>
-      <th>Balance</th>
-    </tr>
-  </thead>
-  <tbody id="registerBody"></tbody>
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Opening Qty (CS)</th>
+            <th>Received Qty (CS)</th>
+            <th>Out Qty (CS)</th>
+            <th>Balance Qty (CS)</th>
+        </tr>
+    </thead>
+    <tbody id="registerBody"></tbody>
 </table>
 
 <script src="/static/js/stock_register.js"></script>

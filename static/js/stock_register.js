@@ -1,9 +1,11 @@
 async function loadProducts() {
     const res = await fetch("/stock/all-products", {
-        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+        headers: {
+            Authorization: "Bearer " + localStorage.getItem("token")
+        }
     });
-    const products = await res.json();
 
+    const products = await res.json();
     const sel = document.getElementById("product");
     sel.innerHTML = "";
 
@@ -12,26 +14,40 @@ async function loadProducts() {
     });
 }
 
-async function loadRegister() {
-    const product = document.getElementById("product").value;
-    const month = document.getElementById("month").value;
+
+async function loadYearlyRegister() {
+    const productId = document.getElementById("product").value;
     const year = document.getElementById("year").value;
 
+    if (!productId || !year) {
+        alert("Select product and year");
+        return;
+    }
+
     const res = await fetch(
-        `/stock-register/monthly?product_id=${product}&month=${month}&year=${year}`,
-        { headers: { Authorization: "Bearer " + localStorage.getItem("token") } }
+        `/stock-register/yearly?product_id=${productId}&year=${year}`,
+        {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
     );
 
     const data = await res.json();
+    const tbody = document.getElementById("registerBody");
+    tbody.innerHTML = "";
 
-    document.getElementById("registerBody").innerHTML = `
-      <tr>
-        <td>${data.month}</td>
-        <td>${data.opening_qty}</td>
-        <td>${data.received_qty}</td>
-        <td>${data.out_qty}</td>
-        <td>${data.balance_qty}</td>
-      </tr>`;
+    data.forEach(row => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${row.month}</td>
+                <td>${row.opening_qty}</td>
+                <td>${row.received_qty}</td>
+                <td>${row.out_qty}</td>
+                <td>${row.balance_qty}</td>
+            </tr>
+        `;
+    });
 }
 
 document.addEventListener("DOMContentLoaded", loadProducts);

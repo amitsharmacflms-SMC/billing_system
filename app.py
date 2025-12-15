@@ -32,6 +32,8 @@ def create_app():
     from routes.stock_routes import stock_bp
     from routes.user_routes import user_bp
     from routes.supplier_mapping_routes import map_bp
+    from routes.stock_register_routes import stock_register_bp
+
 
     # ------------------------------
     # REGISTER BLUEPRINTS
@@ -46,6 +48,8 @@ def create_app():
     app.register_blueprint(stock_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(map_bp)
+    app.register_blueprint(stock_register_bp)
+
 
     # ------------------------------
     # FRONT-END ROUTES (HTML PAGES)
