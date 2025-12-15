@@ -48,11 +48,12 @@ function exportExcel() {
     if (month) params.append("month", month);
     if (date) params.append("date", date);
 
-    fetch(`/stock-register/export?${params.toString()}`, {
-        headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
-        }
-    })
+    fetch(`/stock/stock-register?${params.toString()}`, {
+    headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+    }
+});
+
     .then(res => res.blob())
     .then(blob => {
         const a = document.createElement("a");
