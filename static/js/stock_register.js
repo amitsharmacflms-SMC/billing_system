@@ -3,8 +3,9 @@
 // -------------------------------------
 function loadStockRegister() {
 
-    const month = document.getElementById("month").value;
-    const date = document.getElementById("date").value;
+    const month = document.getElementById("monthFilter")?.value || "";
+    const date = document.getElementById("dateFilter")?.value || "";
+
 
     let url = "/stock/stock-register?";
 
