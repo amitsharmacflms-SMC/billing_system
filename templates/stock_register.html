@@ -7,7 +7,12 @@
         .filters {
             display: flex;
             gap: 20px;
-            margin-bottom: 15px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        .filters div {
+            display: flex;
+            flex-direction: column;
         }
         table {
             width: 100%;
@@ -21,27 +26,35 @@
         th {
             background: #f2f2f2;
         }
+        .actions {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
+
 <body>
 
 <h2>Stock Register</h2>
 
+<!-- ACTIONS -->
+<div class="actions">
+    <button onclick="window.location.href='/menu'">⬅ Back to Menu</button>
+</div>
+
 <!-- FILTERS -->
 <div class="filters">
     <div>
-        <label><b>Month Filter</b></label><br>
-        <input type="month" id="monthFilter">
+        <label>Month Filter</label>
+        <input type="month" id="month">
     </div>
 
     <div>
-        <label><b>Date Filter</b></label><br>
-        <input type="date" id="dateFilter">
+        <label>Date Filter</label>
+        <input type="date" id="date">
     </div>
 
-    <div style="align-self:flex-end">
-        <button onclick="loadStockRegister()">Apply</button>
-        <button onclick="exportExcel()">Export Excel</button>
+    <div>
+        <button onclick="loadStockRegister()">Load</button>
     </div>
 </div>
 
@@ -59,7 +72,7 @@
     </thead>
     <tbody id="stockBody">
         <tr>
-            <td colspan="6">Select filters and click Apply</td>
+            <td colspan="6">Select Month or Date to view stock</td>
         </tr>
     </tbody>
 </table>

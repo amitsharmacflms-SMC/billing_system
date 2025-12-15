@@ -13,6 +13,17 @@ from models.products import Product
 
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
 
+@stock_bp.route("/all-products", methods=["GET"])
+@jwt_required()
+def all_products():
+    products = Product.query.order_by(Product.name).all()
+    return jsonify([
+        {
+            "id": p.id,
+            "name": p.name
+        }
+        for p in products
+    ])
 # -------------------------------------------------
 # STOCK REGISTER (MONTH / DATE FILTER)
 # -------------------------------------------------
