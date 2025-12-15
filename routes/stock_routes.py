@@ -85,23 +85,32 @@ def stock_register():
     month = request.args.get("month")        # YYYY-MM
     filter_date = request.args.get("date")   # YYYY-MM-DD
 
-    if not month and not filter_date:
+    # -----------------------------
+    # Decide date range (SAFE)
+    # -----------------------------
+    if month:
+        try:
+            year, mon = map(int, month.split("-"))
+            start_date = date(year, mon, 1)
+            end_date = date(year, mon, monthrange(year, mon)[1])
+        except Exception:
+            return {"error": "Invalid month format"}, 400
+
+    elif filter_date:
+        try:
+            start_date = datetime.strptime(filter_date, "%Y-%m-%d").date()
+            end_date = start_date
+        except Exception:
+            return {"error": "Invalid date format"}, 400
+
+    else:
         return jsonify([])
 
-    # Date range
-    if month:
-        year, mon = map(int, month.split("-"))
-        start_date = date(year, mon, 1)
-        end_date = date(year, mon, monthrange(year, mon)[1])
-    else:
-        start_date = datetime.strptime(filter_date, "%Y-%m-%d").date()
-        end_date = start_date
-
     rows = []
-
     products = Product.query.order_by(Product.name).all()
 
     for p in products:
+
         opening_in = db.session.query(
             func.coalesce(func.sum(StockEntry.received_cs), 0)
         ).filter(

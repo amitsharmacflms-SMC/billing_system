@@ -1,43 +1,52 @@
 // -------------------------------------
 // LOAD STOCK REGISTER DATA
 // -------------------------------------
-async function loadStockRegister() {
+function loadStockRegister() {
 
-    const monthEl = document.getElementById("monthFilter");
-    const dateEl = document.getElementById("dateFilter");
+    const month = document.getElementById("month").value;
+    const date = document.getElementById("date").value;
 
-    const month = monthEl ? monthEl.value : "";
-    const date = dateEl ? dateEl.value : "";
+    let url = "/stock/stock-register?";
 
-    if (!month && !date) {
-        alert("Please select Month or Date");
+    if (month) {
+        url += "month=" + month;
+    } else if (date) {
+        url += "date=" + date;
+    } else {
+        alert("Select Month or Date");
         return;
     }
 
-    const params = new URLSearchParams();
-    if (month) params.append("month", month);
-    if (date) params.append("date", date);
-
-    const res = await fetch(
-        "/stock/stock-register?" + params.toString(),
-        {
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
+    fetch(url, {
+        headers: {
+            Authorization: "Bearer " + localStorage.getItem("token")
         }
-    );
-
-    if (!res.ok) {
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+        return res.json();
+    })
+    .then(data => renderTable(data))
+    .catch(err => {
+        console.error(err);
         alert("Failed to load stock register");
-        return;
-    }
+    });
+}
 
-    const data = await res.json();
+
+// -------------------------------------
+// RENDER TABLE
+// -------------------------------------
+function renderTable(data) {
+
     const tbody = document.getElementById("stockBody");
     tbody.innerHTML = "";
 
-    if (data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6'>No records found</td></tr>";
+    if (!data || data.length === 0) {
+        tbody.innerHTML =
+            "<tr><td colspan='5'>No records found</td></tr>";
         return;
     }
 
@@ -45,8 +54,7 @@ async function loadStockRegister() {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${row.month}</td>
-            <td>${row.date}</td>
+            <td>${row.product}</td>
             <td>${row.opening_qty}</td>
             <td>${row.received_qty}</td>
             <td>${row.out_qty}</td>
@@ -57,13 +65,14 @@ async function loadStockRegister() {
     });
 }
 
+
 // -------------------------------------
 // EXPORT TO EXCEL
 // -------------------------------------
 function exportExcel() {
 
-    const month = document.getElementById("monthFilter").value;
-    const date = document.getElementById("dateFilter").value;
+    const month = document.getElementById("month").value;
+    const date = document.getElementById("date").value;
 
     if (!month && !date) {
         alert("Please select Month or Date");
@@ -78,7 +87,7 @@ function exportExcel() {
         "/stock/stock-register/export?" + params.toString(),
         {
             headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
+                Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
     )
@@ -88,5 +97,9 @@ function exportExcel() {
         link.href = window.URL.createObjectURL(blob);
         link.download = "Stock_Register.xlsx";
         link.click();
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Export failed");
     });
 }
