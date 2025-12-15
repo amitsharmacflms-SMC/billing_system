@@ -6,7 +6,6 @@ function loadStockRegister() {
     const month = document.getElementById("monthFilter")?.value || "";
     const date = document.getElementById("dateFilter")?.value || "";
 
-
     let url = "/stock/stock-register?";
 
     if (month) {
@@ -23,12 +22,7 @@ function loadStockRegister() {
             Authorization: "Bearer " + localStorage.getItem("token")
         }
     })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error("Server error");
-        }
-        return res.json();
-    })
+    .then(res => res.json())
     .then(data => renderTable(data))
     .catch(err => {
         console.error(err);
