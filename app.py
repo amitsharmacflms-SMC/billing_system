@@ -68,7 +68,7 @@ def create_app():
         return render_template("received_stock.html")
 
     # STOCK REGISTER
-    @app.route("/stock-register-page")
+    @app.route("/stock-register")
     def stock_register_page():
         return render_template("stock_register.html")
 
