@@ -50,4 +50,33 @@ async function loadYearlyRegister() {
     });
 }
 
+
+function exportExcel() {
+    const productId = document.getElementById("product").value;
+    const year = document.getElementById("year").value;
+
+    if (!productId || !year) {
+        alert("Select product and year");
+        return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    const url = `/stock-register/yearly-export?product_id=${productId}&year=${year}`;
+
+    fetch(url, {
+        headers: {
+            Authorization: "Bearer " + token
+        }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `Stock_Register_${year}.xlsx`;
+        link.click();
+    });
+}
+
+
 document.addEventListener("DOMContentLoaded", loadProducts);

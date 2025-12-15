@@ -4,6 +4,11 @@ from core.database import db
 from models.stock import StockEntry
 from models.invoice_items import InvoiceItem
 from datetime import date
+from openpyxl import Workbook
+from flask import send_file
+import io
+
+
 
 stock_register_bp = Blueprint(
     "stock_register",
@@ -12,21 +17,21 @@ stock_register_bp = Blueprint(
 )
 
 
-@stock_register_bp.route("/yearly", methods=["GET"])
+@stock_register_bp.route("/yearly-export", methods=["GET"])
 @jwt_required()
-def yearly_stock_register():
+def yearly_stock_register_export():
     product_id = request.args.get("product_id")
     year = request.args.get("year")
 
     if not product_id or not year:
         return {"error": "product_id and year required"}, 400
 
-    year = int(year)
     product_id = int(product_id)
+    year = int(year)
 
-    # -------------------------------
+    # --------------------------------
     # Opening stock before Jan 1
-    # -------------------------------
+    # --------------------------------
     year_start = date(year, 1, 1)
 
     opening_received = db.session.query(
@@ -43,14 +48,25 @@ def yearly_stock_register():
         InvoiceItem.created_at < year_start
     ).scalar()
 
-    opening_balance = float(opening_received) - float(opening_sold)
+    running_balance = float(opening_received) - float(opening_sold)
 
-    results = []
-    running_balance = opening_balance
+    # --------------------------------
+    # Create Excel Workbook
+    # --------------------------------
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Stock Register"
 
-    # -------------------------------
-    # Loop through 12 months
-    # -------------------------------
+    # Header
+    ws.append([
+        "Month",
+        "Opening Qty (CS)",
+        "Received Qty (CS)",
+        "Out Qty (CS)",
+        "Balance Qty (CS)"
+    ])
+
+    # Data rows
     for month in range(1, 13):
 
         received = db.session.query(
@@ -74,14 +90,26 @@ def yearly_stock_register():
 
         closing = running_balance + received - sold
 
-        results.append({
-            "month": f"{year}-{month:02d}",
-            "opening_qty": round(running_balance, 2),
-            "received_qty": round(received, 2),
-            "out_qty": round(sold, 2),
-            "balance_qty": round(closing, 2)
-        })
+        ws.append([
+            f"{year}-{month:02d}",
+            round(running_balance, 2),
+            round(received, 2),
+            round(sold, 2),
+            round(closing, 2)
+        ])
 
         running_balance = closing
 
-    return jsonify(results), 200
+    # --------------------------------
+    # Send file
+    # --------------------------------
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=f"Stock_Register_{year}.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
