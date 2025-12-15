@@ -115,7 +115,7 @@ def stock_register():
             func.coalesce(func.sum(StockEntry.received_cs), 0)
         ).filter(
             StockEntry.product_id == p.id,
-            StockEntry.received_date < start_date
+            StockEntry.date < start_date
         ).scalar()
 
         opening_out = db.session.query(
@@ -131,7 +131,7 @@ def stock_register():
             func.coalesce(func.sum(StockEntry.received_cs), 0)
         ).filter(
             StockEntry.product_id == p.id,
-            StockEntry.received_date.between(start_date, end_date)
+            StockEntry.date.between(start_date, end_date)
         ).scalar()
 
         sold = db.session.query(
