@@ -10,6 +10,11 @@ from models.products import Product
 
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
 
+@stock_bp.route("/__ping__", methods=["GET"])
+def stock_ping():
+    return {"status": "stock blueprint loaded"}, 200
+
+
 
 # GET PRODUCT LIST
 @stock_bp.route("/all-products", methods=["GET"])
