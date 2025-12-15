@@ -68,7 +68,7 @@ def create_app():
         return render_template("received_stock.html")
 
     # STOCK REGISTER
-    @app.route("/stock-register")
+    @app.route("/stock-register-page")
     def stock_register_page():
         return render_template("stock_register.html")
 
@@ -101,13 +101,6 @@ def create_app():
     @app.route("/suppliers/manage")
     def suppliers_manage_page():
         return render_template("suppliers_update.html")
-
-    @app.route("/stock-register-page")
-    def stock_register_page():
-        return render_template("stock_register.html")
-
-
-
 
     # DISTRIBUTOR MANAGEMENT
     @app.route("/distributors/manage")
