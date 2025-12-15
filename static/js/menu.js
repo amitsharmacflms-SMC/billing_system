@@ -19,6 +19,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("btnProductUpdate").style.display = "none";
         document.getElementById("btnUserMgmt").style.display = "none";
     }
+function goStockRegister() {
+    window.location.href = "/stock-register-page";
+}
+
+
 
     // Logout
     document.getElementById("logoutBtn").onclick = () => {
