@@ -102,6 +102,13 @@ def create_app():
     def suppliers_manage_page():
         return render_template("suppliers_update.html")
 
+    @app.route("/stock-register-page")
+    def stock_register_page():
+        return render_template("stock_register.html")
+
+
+
+
     # DISTRIBUTOR MANAGEMENT
     @app.route("/distributors/manage")
     def distributors_manage_page():
