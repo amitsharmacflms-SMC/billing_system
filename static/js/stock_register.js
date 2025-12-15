@@ -1,28 +1,55 @@
 // -------------------------------------
+// AUTO CLEAR MONTH / DATE (UX FIX)
+// -------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+
+    const monthEl = document.getElementById("month");
+    const dateEl  = document.getElementById("date");
+
+    // Clear date when month selected
+    monthEl.addEventListener("change", () => {
+        dateEl.value = "";
+    });
+
+    // Clear month when date selected
+    dateEl.addEventListener("change", () => {
+        monthEl.value = "";
+    });
+});
+
+
+// -------------------------------------
 // LOAD STOCK REGISTER DATA
 // -------------------------------------
 function loadStockRegister() {
 
-    const month = document.getElementById("monthFilter")?.value || "";
-    const date = document.getElementById("dateFilter")?.value || "";
+    const month = document.getElementById("month").value;
+    const date  = document.getElementById("date").value;
+
+    if (!month && !date) {
+        alert("Select Month or Date");
+        return;
+    }
 
     let url = "/stock/stock-register?";
 
     if (month) {
         url += "month=" + month;
-    } else if (date) {
-        url += "date=" + date;
     } else {
-        alert("Select Month or Date");
-        return;
+        url += "date=" + date;
     }
 
     fetch(url, {
         headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
+            "Authorization": "Bearer " + localStorage.getItem("token")
         }
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+        return res.json();
+    })
     .then(data => renderTable(data))
     .catch(err => {
         console.error(err);
@@ -41,7 +68,7 @@ function renderTable(data) {
 
     if (!data || data.length === 0) {
         tbody.innerHTML =
-            "<tr><td colspan='5'>No records found</td></tr>";
+            "<tr><td colspan='6'>No records found</td></tr>";
         return;
     }
 
@@ -49,7 +76,8 @@ function renderTable(data) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${row.product}</td>
+            <td>${row.month}</td>
+            <td>${row.date}</td>
             <td>${row.opening_qty}</td>
             <td>${row.received_qty}</td>
             <td>${row.out_qty}</td>
@@ -57,44 +85,5 @@ function renderTable(data) {
         `;
 
         tbody.appendChild(tr);
-    });
-}
-
-
-// -------------------------------------
-// EXPORT TO EXCEL
-// -------------------------------------
-function exportExcel() {
-
-    const month = document.getElementById("month").value;
-    const date = document.getElementById("date").value;
-
-    if (!month && !date) {
-        alert("Please select Month or Date");
-        return;
-    }
-
-    const params = new URLSearchParams();
-    if (month) params.append("month", month);
-    if (date) params.append("date", date);
-
-    fetch(
-        "/stock/stock-register/export?" + params.toString(),
-        {
-            headers: {
-                Authorization: "Bearer " + localStorage.getItem("token")
-            }
-        }
-    )
-    .then(res => res.blob())
-    .then(blob => {
-        const link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        link.download = "Stock_Register.xlsx";
-        link.click();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Export failed");
     });
 }
