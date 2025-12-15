@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
+from sqlalchemy import func
+from datetime import datetime, date
+
 from core.database import db
 from models.stock import StockEntry
+from models.invoice_items import InvoiceItem
 from models.products import Product
-from flask_jwt_extended import jwt_required
-from datetime import datetime
 
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
 

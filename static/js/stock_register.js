@@ -1,82 +1,63 @@
-async function loadProducts() {
-    const res = await fetch("/stock/all-products", {
+async function loadStockRegister() {
+    const month = document.getElementById("monthFilter").value;
+    const date = document.getElementById("dateFilter").value;
+
+    if (!month && !date) {
+        alert("Select Month or Date");
+        return;
+    }
+
+    const params = new URLSearchParams();
+    if (month) params.append("month", month);
+    if (date) params.append("date", date);
+
+    const res = await fetch(`/stock-register?${params.toString()}`, {
         headers: {
             Authorization: "Bearer " + localStorage.getItem("token")
         }
     });
 
-    const products = await res.json();
-    const sel = document.getElementById("product");
-    sel.innerHTML = "";
+    const data = await res.json();
+    const tbody = document.getElementById("stockBody");
+    tbody.innerHTML = "";
 
-    products.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-    });
-}
-
-
-async function loadYearlyRegister() {
-    const productId = document.getElementById("product").value;
-    const year = document.getElementById("year").value;
-
-    if (!productId || !year) {
-        alert("Select product and year");
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6">No records</td></tr>`;
         return;
     }
 
-    const res = await fetch(
-        `/stock-register/yearly?product_id=${productId}&year=${year}`,
-        {
-            headers: {
-                Authorization: "Bearer " + localStorage.getItem("token")
-            }
-        }
-    );
-
-    const data = await res.json();
-    const tbody = document.getElementById("registerBody");
-    tbody.innerHTML = "";
-
-    data.forEach(row => {
+    data.forEach(r => {
         tbody.innerHTML += `
             <tr>
-                <td>${row.month}</td>
-                <td>${row.opening_qty}</td>
-                <td>${row.received_qty}</td>
-                <td>${row.out_qty}</td>
-                <td>${row.balance_qty}</td>
+                <td>${r.month}</td>
+                <td>${r.date}</td>
+                <td>${r.opening_qty}</td>
+                <td>${r.received_qty}</td>
+                <td>${r.out_qty}</td>
+                <td>${r.balance_qty}</td>
             </tr>
         `;
     });
 }
 
-
 function exportExcel() {
-    const productId = document.getElementById("product").value;
-    const year = document.getElementById("year").value;
+    const month = document.getElementById("monthFilter").value;
+    const date = document.getElementById("dateFilter").value;
 
-    if (!productId || !year) {
-        alert("Select product and year");
-        return;
-    }
+    const params = new URLSearchParams();
+    if (month) params.append("month", month);
+    if (date) params.append("date", date);
 
-    const token = localStorage.getItem("token");
-
-    const url = `/stock-register/yearly-export?product_id=${productId}&year=${year}`;
-
-    fetch(url, {
+    fetch(`/stock-register/export?${params.toString()}`, {
         headers: {
-            Authorization: "Bearer " + token
+            Authorization: "Bearer " + localStorage.getItem("token")
         }
     })
     .then(res => res.blob())
     .then(blob => {
-        const link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `Stock_Register_${year}.xlsx`;
-        link.click();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "Stock_Register.xlsx";
+        a.click();
     });
 }
-
-
-document.addEventListener("DOMContentLoaded", loadProducts);
