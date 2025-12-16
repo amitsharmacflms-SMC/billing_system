@@ -18,7 +18,20 @@ async function loadSuppliers(){
 }
 
 document.getElementById('addSupplier').onclick = async ()=>{
-  const payload = { name: document.getElementById('s_name').value, city: document.getElementById('s_city').value, state: document.getElementById('s_state').value, gstin: document.getElementById('s_gstin').value };
+  const payload = {
+  unique_key: s_unique_key.value,
+  name: s_name.value,
+  contact_person: s_contact_person.value,
+  phone: s_phone.value,
+  email: s_email.value,
+  address: s_address.value,
+  city: s_city.value,
+  state: s_state.value,
+  state_code: s_state_code.value,
+  pincode: s_pincode.value,
+  gstin: s_gstin.value
+};
+
   const res = await fetch(`${API_BASE}/suppliers/add`, { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}`}, body:JSON.stringify(payload) });
   if(!res.ok){ alert('Add failed'); return; }
   await loadSuppliers();

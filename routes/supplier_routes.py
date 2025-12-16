@@ -9,47 +9,23 @@ supplier_bp = Blueprint("suppliers", __name__, url_prefix="/suppliers")
 # ---------------------------------------------------
 @supplier_bp.route("/", methods=["GET"])
 def get_all_suppliers():
-    suppliers = Supplier.query.all()
-    data = []
-    for s in suppliers:
-        data.append({
+    suppliers = Supplier.query.order_by(Supplier.name).all()
+    return jsonify([
+        {
             "id": s.id,
-            "unique_key": getattr(s, "unique_key", None),
+            "unique_key": s.unique_key,
             "name": s.name,
+            "contact_person": s.contact_person,
             "address": s.address,
-            "city": getattr(s, "city", None),
-            "state": getattr(s, "state", None),
-            "pincode": getattr(s, "pincode", None),
-            "gstin": getattr(s, "gstin", None),
-            "contact_person": getattr(s, "contact_person", None),
-            "phone": getattr(s, "phone", None),
-            "email": getattr(s, "email", None)
-        })
-    return jsonify(data)
-
-
-# ---------------------------------------------------
-# GET SINGLE SUPPLIER
-# ---------------------------------------------------
-@supplier_bp.route("/<int:supplier_id>", methods=["GET"])
-def get_supplier(supplier_id):
-    s = Supplier.query.get(supplier_id)
-    if not s:
-        return jsonify({"error": "Supplier not found"}), 404
-
-    return jsonify({
-        "id": s.id,
-        "unique_key": getattr(s, "unique_key", None),
-        "name": s.name,
-        "address": s.address,
-        "city": getattr(s, "city", None),
-        "state": getattr(s, "state", None),
-        "pincode": getattr(s, "pincode", None),
-        "gstin": getattr(s, "gstin", None),
-        "contact_person": getattr(s, "contact_person", None),
-        "phone": getattr(s, "phone", None),
-        "email": getattr(s, "email", None)
-    })
+            "city": s.city,
+            "state": s.state,
+            "state_code": s.state_code,
+            "pincode": s.pincode,
+            "gstin": s.gstin,
+            "phone": s.phone,
+            "email": s.email
+        } for s in suppliers
+    ])
 
 
 # ---------------------------------------------------
@@ -59,31 +35,26 @@ def get_supplier(supplier_id):
 def add_supplier():
     data = request.get_json() or {}
 
-    # minimal required fields
     if not data.get("name"):
-        return jsonify({"error": "Supplier name is required"}), 400
+        return {"error": "Supplier name required"}, 400
 
-    new_supplier = Supplier(
+    s = Supplier(
         unique_key=data.get("unique_key"),
-        name=data.get("name"),
+        name=data["name"],
+        contact_person=data.get("contact_person"),
         address=data.get("address"),
         city=data.get("city"),
         state=data.get("state"),
+        state_code=data.get("state_code"),
         pincode=data.get("pincode"),
         gstin=data.get("gstin"),
-        contact_person=data.get("contact_person"),
         phone=data.get("phone"),
-        email=data.get("email"),
+        email=data.get("email")
     )
 
-    try:
-        db.session.add(new_supplier)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({"message": "Supplier added", "id": new_supplier.id})
+    db.session.add(s)
+    db.session.commit()
+    return {"message": "Supplier added", "id": s.id}
 
 
 # ---------------------------------------------------
@@ -91,30 +62,23 @@ def add_supplier():
 # ---------------------------------------------------
 @supplier_bp.route("/update/<int:supplier_id>", methods=["PUT"])
 def update_supplier(supplier_id):
-    s = Supplier.query.get(supplier_id)
-    if not s:
-        return jsonify({"error": "Supplier not found"}), 404
-
+    s = Supplier.query.get_or_404(supplier_id)
     data = request.get_json() or {}
 
     s.unique_key = data.get("unique_key", s.unique_key)
     s.name = data.get("name", s.name)
+    s.contact_person = data.get("contact_person", s.contact_person)
     s.address = data.get("address", s.address)
     s.city = data.get("city", s.city)
     s.state = data.get("state", s.state)
+    s.state_code = data.get("state_code", s.state_code)
     s.pincode = data.get("pincode", s.pincode)
     s.gstin = data.get("gstin", s.gstin)
-    s.contact_person = data.get("contact_person", s.contact_person)
     s.phone = data.get("phone", s.phone)
     s.email = data.get("email", s.email)
 
-    try:
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({"message": "Supplier updated"})
+    db.session.commit()
+    return {"message": "Supplier updated"}
 
 
 # ---------------------------------------------------
@@ -122,15 +86,7 @@ def update_supplier(supplier_id):
 # ---------------------------------------------------
 @supplier_bp.route("/delete/<int:supplier_id>", methods=["DELETE"])
 def delete_supplier(supplier_id):
-    s = Supplier.query.get(supplier_id)
-    if not s:
-        return jsonify({"error": "Supplier not found"}), 404
-
-    try:
-        db.session.delete(s)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({"message": "Supplier deleted"})
+    s = Supplier.query.get_or_404(supplier_id)
+    db.session.delete(s)
+    db.session.commit()
+    return {"message": "Supplier deleted"}
