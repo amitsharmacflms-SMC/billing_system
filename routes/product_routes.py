@@ -36,16 +36,23 @@ def get_products():
 def add_product():
     data = request.get_json()
 
-    if not data.get("name"):
-        return {"error": "Product name required"}, 400
+    sku = data.get("sku")
+    name = data.get("name")
+
+    if not sku or not name:
+        return {"error": "SKU and Product name required"}, 400
+
+    # prevent duplicate SKU
+    if Product.query.filter_by(sku=sku).first():
+        return {"error": "SKU already exists"}, 409
 
     product = Product(
-        sku = data.get("sku"),
-        name = data["name"],
-        hsn = data.get("hsn"),
-        mrp = data.get("mrp", 0),
-        rate = data.get("rate", 0),
-        pack = data.get("pack")
+        sku=sku,
+        name=name,
+        hsn=data.get("hsn"),
+        mrp=data.get("mrp", 0),
+        rate=data.get("rate", 0),
+        pack=data.get("pack")
     )
 
     db.session.add(product)
