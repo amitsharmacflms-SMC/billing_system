@@ -6,7 +6,7 @@ class Distributor(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    unique_key = db.Column(db.String(50), unique=True)
+    unique_key = db.Column(db.String(50), nullable=False, unique=True)
     name = db.Column(db.String(255), nullable=False)
     contact_person = db.Column(db.String(150))
 
@@ -15,7 +15,7 @@ class Distributor(db.Model):
     state = db.Column(db.String(100))
     pincode = db.Column(db.String(10))
 
-    gstin = db.Column(db.String(30))
+    gstin = db.Column(db.String(30), nullable=False, unique=True)
     phone = db.Column(db.String(30))
     email = db.Column(db.String(255))
 
