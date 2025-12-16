@@ -1,22 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stock Register</title>
+    <title>Stock Summary</title>
     <link rel="stylesheet" href="/static/css/basic.css">
     <style>
-        .filters {
-            display: flex;
-            gap: 20px;
-            align-items: flex-end;
-            margin-bottom: 20px;
-        }
-        .filters div {
-            display: flex;
-            flex-direction: column;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 15px;
         }
         th, td {
             border: 1px solid #999;
@@ -26,44 +17,18 @@
         th {
             background: #f2f2f2;
         }
-        .actions {
-            margin-bottom: 15px;
-        }
     </style>
 </head>
-
 <body>
 
-<h2>Stock Register</h2>
+<h2>Stock Summary</h2>
 
-<!-- ACTIONS -->
-<div class="actions">
-    <button onclick="window.location.href='/menu'">⬅ Back to Menu</button>
-</div>
+<button onclick="window.location.href='/menu'">← Back to Menu</button>
 
-<!-- FILTERS -->
-<div class="filters">
-    <div>
-        <label>Month Filter</label>
-        <input type="month" id="month">
-    </div>
-
-    <div>
-        <label>Date Filter</label>
-        <input type="date" id="date">
-    </div>
-
-    <div>
-        <button onclick="loadStockRegister()">Load</button>
-    </div>
-</div>
-
-<!-- TABLE -->
 <table>
     <thead>
         <tr>
-            <th>Month</th>
-            <th>Date</th>
+            <th>PRODUCTS</th>
             <th>Opening Qty (CS)</th>
             <th>Received Qty (CS)</th>
             <th>Out Qty (CS)</th>
@@ -72,7 +37,7 @@
     </thead>
     <tbody id="stockBody">
         <tr>
-            <td colspan="6">Select Month or Date to view stock</td>
+            <td colspan="5">Loading...</td>
         </tr>
     </tbody>
 </table>
