@@ -9,31 +9,29 @@ function popup(msg){
   alert(msg);
 }
 
-/* ---------------- LOAD SUPPLIERS ---------------- */
+/* ---------------- SUPPLIERS DROPDOWN ---------------- */
 async function loadSuppliersDropdown(){
   const res = await fetch(`${API_BASE}/suppliers/`, {
     headers:{ Authorization:`Bearer ${token}` }
   });
   const list = await res.json();
-  const ddl = document.getElementById("d_supplier_id");
 
-  ddl.innerHTML = `<option value="">-- Select Supplier --</option>`;
+  d_supplier_id.innerHTML = `<option value="">-- Select Supplier --</option>`;
   list.forEach(s=>{
-    ddl.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    d_supplier_id.innerHTML += `<option value="${s.id}">${s.name}</option>`;
   });
 }
 
-/* ---------------- LOAD DISTRIBUTORS LIST ---------------- */
+/* ---------------- LIST ---------------- */
 async function loadDists(){
   const res = await fetch(`${API_BASE}/distributors/`, {
     headers:{ Authorization:`Bearer ${token}` }
   });
   const list = await res.json();
-  const t = document.getElementById("distBody");
-  t.innerHTML = "";
 
+  distBody.innerHTML = "";
   list.forEach(d=>{
-    t.innerHTML += `
+    distBody.innerHTML += `
       <tr>
         <td>${d.id}</td>
         <td>${d.unique_key}</td>
@@ -51,7 +49,7 @@ async function loadDists(){
 }
 
 /* ---------------- ADD / UPDATE ---------------- */
-document.getElementById("addDist").onclick = async ()=>{
+addDist.onclick = async ()=>{
   const editId = addDist.dataset.editId;
 
   const payload = {
@@ -73,13 +71,11 @@ document.getElementById("addDist").onclick = async ()=>{
     return;
   }
 
-  let url = `${API_BASE}/distributors/add`;
-  let method = "POST";
+  const url = editId
+    ? `${API_BASE}/distributors/update/${editId}`
+    : `${API_BASE}/distributors/add`;
 
-  if(editId){
-    url = `${API_BASE}/distributors/update/${editId}`;
-    method = "PUT";
-  }
+  const method = editId ? "PUT" : "POST";
 
   const res = await fetch(url, {
     method,
@@ -104,6 +100,12 @@ async function editDist(id){
   const res = await fetch(`${API_BASE}/distributors/${id}`, {
     headers:{ Authorization:`Bearer ${token}` }
   });
+
+  if(!res.ok){
+    popup("Failed to load distributor");
+    return;
+  }
+
   const d = await res.json();
 
   d_unique_key.value = d.unique_key || "";
@@ -134,9 +136,7 @@ async function deleteDist(id){
   const data = await res.json();
   popup(data.message || data.error);
 
-  if(res.ok){
-    loadDists();
-  }
+  if(res.ok) loadDists();
 }
 
 /* ---------------- HELPERS ---------------- */

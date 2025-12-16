@@ -1,7 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 from core.database import db
 from models.distributors import Distributor
-from models.invoices import Invoice   # adjust if your model name differs
+from models.invoices import Invoice   # ensure this exists
 import re
 
 distributor_bp = Blueprint("distributors", __name__, url_prefix="/distributors")
@@ -11,7 +11,7 @@ GSTIN_REGEX = re.compile(
 )
 
 # ---------------------------------------------------
-# LIST
+# LIST ALL
 # ---------------------------------------------------
 @distributor_bp.route("/", methods=["GET"])
 def list_distributors():
@@ -20,16 +20,35 @@ def list_distributors():
         "id": d.id,
         "unique_key": d.unique_key,
         "name": d.name,
+        "city": d.city,
+        "state": d.state,
+        "gstin": d.gstin
+    } for d in items])
+
+
+# ---------------------------------------------------
+# GET SINGLE (FIXES 404 + JSON ERROR)
+# ---------------------------------------------------
+@distributor_bp.route("/<int:dist_id>", methods=["GET"])
+def get_distributor(dist_id):
+    d = Distributor.query.get(dist_id)
+    if not d:
+        return {"error": "Distributor not found"}, 404
+
+    return {
+        "id": d.id,
+        "unique_key": d.unique_key,
+        "name": d.name,
         "contact_person": d.contact_person,
+        "phone": d.phone,
+        "email": d.email,
         "address": d.address,
         "city": d.city,
         "state": d.state,
         "pincode": d.pincode,
         "gstin": d.gstin,
-        "phone": d.phone,
-        "email": d.email,
         "supplier_id": d.supplier_id
-    } for d in items])
+    }
 
 
 # ---------------------------------------------------
@@ -39,11 +58,8 @@ def list_distributors():
 def add_distributor():
     data = request.get_json() or {}
 
-    if not data.get("unique_key"):
-        return {"error": "Distributor Code is required"}, 400
-
-    if not data.get("gstin"):
-        return {"error": "GSTIN is required"}, 400
+    if not data.get("unique_key") or not data.get("name") or not data.get("gstin"):
+        return {"error": "Distributor Code, Name and GSTIN are required"}, 400
 
     gstin = data["gstin"].upper()
     if not GSTIN_REGEX.match(gstin):
@@ -57,15 +73,15 @@ def add_distributor():
 
     d = Distributor(
         unique_key=data["unique_key"],
-        name=data.get("name"),
+        name=data["name"],
         contact_person=data.get("contact_person"),
+        phone=data.get("phone"),
+        email=data.get("email"),
         address=data.get("address"),
         city=data.get("city"),
         state=data.get("state"),
         pincode=data.get("pincode"),
         gstin=gstin,
-        phone=data.get("phone"),
-        email=data.get("email"),
         supplier_id=data.get("supplier_id")
     )
 
@@ -82,12 +98,11 @@ def update_distributor(dist_id):
     d = Distributor.query.get_or_404(dist_id)
     data = request.get_json() or {}
 
-    if "unique_key" in data:
-        exists = Distributor.query.filter(
+    if "unique_key" in data and data["unique_key"] != d.unique_key:
+        if Distributor.query.filter(
             Distributor.unique_key == data["unique_key"],
             Distributor.id != dist_id
-        ).first()
-        if exists:
+        ).first():
             return {"error": "Distributor Code already exists"}, 400
         d.unique_key = data["unique_key"]
 
@@ -95,24 +110,29 @@ def update_distributor(dist_id):
         gstin = data["gstin"].upper()
         if not GSTIN_REGEX.match(gstin):
             return {"error": "Invalid GSTIN format"}, 400
-        exists = Distributor.query.filter(
+        if Distributor.query.filter(
             Distributor.gstin == gstin,
             Distributor.id != dist_id
-        ).first()
-        if exists:
+        ).first():
             return {"error": "GSTIN already exists"}, 400
         d.gstin = gstin
 
     d.name = data.get("name", d.name)
+    d.contact_person = data.get("contact_person", d.contact_person)
+    d.phone = data.get("phone", d.phone)
+    d.email = data.get("email", d.email)
+    d.address = data.get("address", d.address)
     d.city = data.get("city", d.city)
     d.state = data.get("state", d.state)
+    d.pincode = data.get("pincode", d.pincode)
+    d.supplier_id = data.get("supplier_id", d.supplier_id)
 
     db.session.commit()
     return {"message": "Distributor updated successfully"}
 
 
 # ---------------------------------------------------
-# DELETE (BLOCK IF INVOICES EXIST)
+# DELETE (BLOCK IF USED)
 # ---------------------------------------------------
 @distributor_bp.route("/delete/<int:dist_id>", methods=["DELETE"])
 def delete_distributor(dist_id):
@@ -121,9 +141,7 @@ def delete_distributor(dist_id):
         .first()
 
     if used:
-        return {
-            "error": "Distributor is used in invoices and cannot be deleted"
-        }, 400
+        return {"error": "Distributor is used in invoices and cannot be deleted"}, 400
 
     d = Distributor.query.get_or_404(dist_id)
     db.session.delete(d)

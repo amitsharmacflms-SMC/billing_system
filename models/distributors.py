@@ -8,7 +8,10 @@ class Distributor(db.Model):
 
     unique_key = db.Column(db.String(50), nullable=False, unique=True)
     name = db.Column(db.String(255), nullable=False)
+
     contact_person = db.Column(db.String(150))
+    phone = db.Column(db.String(30))
+    email = db.Column(db.String(255))
 
     address = db.Column(db.Text)
     city = db.Column(db.String(100))
@@ -16,8 +19,6 @@ class Distributor(db.Model):
     pincode = db.Column(db.String(10))
 
     gstin = db.Column(db.String(30), nullable=False, unique=True)
-    phone = db.Column(db.String(30))
-    email = db.Column(db.String(255))
 
     supplier_id = db.Column(db.Integer, db.ForeignKey("suppliers.id"))
     supplier = db.relationship("Supplier", backref="distributors")
