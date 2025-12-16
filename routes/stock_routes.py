@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required
 from sqlalchemy import func
-from datetime import datetime, date
-from calendar import monthrange
 from io import BytesIO
 import pandas as pd
 
@@ -11,8 +9,21 @@ from models.stock import StockEntry
 from models.invoice_items import InvoiceItem
 from models.products import Product
 
-# ✅ DEFINE BLUEPRINT FIRST (THIS FIXES YOUR ERROR)
+# ✅ Blueprint FIRST
 stock_bp = Blueprint("stock", __name__, url_prefix="/stock")
+
+
+# -------------------------------------------------
+# REQUIRED FOR RECEIVED STOCK PAGE
+# -------------------------------------------------
+@stock_bp.route("/all-products", methods=["GET"])
+@jwt_required()
+def all_products():
+    products = Product.query.order_by(Product.name).all()
+    return jsonify([
+        {"id": p.id, "name": p.name}
+        for p in products
+    ])
 
 
 # -------------------------------------------------
@@ -27,7 +38,7 @@ def stock_summary():
     products = Product.query.order_by(Product.name).all()
 
     for p in products:
-        opening_qty = 0  # LOCKED
+        opening_qty = 0  # Locked by rule
 
         received_qty = db.session.query(
             func.coalesce(func.sum(StockEntry.received_cs), 0)
@@ -55,7 +66,7 @@ def stock_summary():
 
 
 # -------------------------------------------------
-# OPTIONAL: EXPORT EXCEL
+# EXPORT SUMMARY
 # -------------------------------------------------
 @stock_bp.route("/stock-summary/export", methods=["GET"])
 @jwt_required()
