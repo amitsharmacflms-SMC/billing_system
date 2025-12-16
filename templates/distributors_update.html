@@ -1,25 +1,51 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Distributors Update</title><link rel="stylesheet" href="/static/css/basic.css"></head>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Distributors Update</title>
+  <link rel="stylesheet" href="/static/css/basic.css">
+</head>
 <body>
-<div class="form-row">
-  <input id="d_unique_key" placeholder="Distributor Code">
-  <input id="d_name" placeholder="Distributor Name">
-  <input id="d_contact_person" placeholder="Contact Person">
-  <input id="d_phone" placeholder="Phone">
-  <input id="d_email" placeholder="Email">
+<div class="page">
+  <h2>Distributors Update (Admin)</h2>
 
-  <input id="d_address" placeholder="Address">
-  <input id="d_city" placeholder="City">
-  <input id="d_state" placeholder="State">
-  <input id="d_pincode" placeholder="Pincode">
-  <input id="d_gstin" placeholder="GSTIN">
+  <div class="form-row">
+    <input id="d_unique_key" placeholder="Distributor Code">
+    <input id="d_name" placeholder="Distributor Name">
+    <input id="d_contact_person" placeholder="Contact Person">
+    <input id="d_phone" placeholder="Phone">
+    <input id="d_email" placeholder="Email">
 
-  <input id="d_supplier_id" placeholder="Supplier ID">
-  <button id="addDist">Add Distributor</button>
-</div>
+    <input id="d_address" placeholder="Address">
+    <input id="d_city" placeholder="City">
+    <input id="d_state" placeholder="State">
+    <input id="d_pincode" placeholder="Pincode">
+    <input id="d_gstin" placeholder="GSTIN">
 
-  <table class="simple-table"><thead><tr><th>ID</th><th>Name</th><th>City</th><th>State</th><th>Actions</th></tr></thead><tbody id="distBody"></tbody></table>
+    <select id="d_supplier_id">
+      <option value="">-- Select Supplier --</option>
+    </select>
+
+    <button id="addDist">Add Distributor</button>
+  </div>
+
+  <table class="simple-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>City</th>
+        <th>State</th>
+        <th>GSTIN</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="distBody"></tbody>
+  </table>
+
   <button onclick="goMenu()">Back</button>
 </div>
+
 <script src="/static/js/distributors_update.js"></script>
-</body></html>
+</body>
+</html>

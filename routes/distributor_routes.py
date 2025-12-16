@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from core.database import db
 from models.distributors import Distributor
+from models.invoices import Invoice   # adjust if invoice model name differs
 
 distributor_bp = Blueprint("distributors", __name__, url_prefix="/distributors")
 
@@ -80,11 +81,21 @@ def update_distributor(dist_id):
 
 
 # ---------------------------------------------------
-# DELETE DISTRIBUTOR
+# DELETE DISTRIBUTOR (BLOCK IF USED IN INVOICES)
 # ---------------------------------------------------
 @distributor_bp.route("/delete/<int:dist_id>", methods=["DELETE"])
 def delete_distributor(dist_id):
     d = Distributor.query.get_or_404(dist_id)
+
+    used = db.session.query(Invoice.id)\
+        .filter(Invoice.distributor_id == dist_id)\
+        .first()
+
+    if used:
+        return {
+            "error": "Distributor is used in invoices and cannot be deleted"
+        }, 400
+
     db.session.delete(d)
     db.session.commit()
     return {"message": "Distributor deleted"}

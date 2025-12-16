@@ -1,6 +1,28 @@
 const API_BASE = "https://billingsystem-production.up.railway.app";
 const token = localStorage.getItem("token");
 
+function goMenu(){
+  window.location.href = "/menu";
+}
+
+// ---------------- LOAD SUPPLIERS DROPDOWN ----------------
+async function loadSuppliersDropdown(){
+  const res = await fetch(`${API_BASE}/suppliers/`, {
+    headers:{ Authorization:`Bearer ${token}` }
+  });
+  const list = await res.json();
+  const ddl = document.getElementById("d_supplier_id");
+
+  ddl.innerHTML = `<option value="">-- Select Supplier --</option>`;
+  list.forEach(s=>{
+    ddl.insertAdjacentHTML(
+      "beforeend",
+      `<option value="${s.id}">${s.name}</option>`
+    );
+  });
+}
+
+// ---------------- LOAD DISTRIBUTORS ----------------
 async function loadDists(){
   const res = await fetch(`${API_BASE}/distributors/`, {
     headers:{ Authorization:`Bearer ${token}` }
@@ -26,6 +48,7 @@ async function loadDists(){
   });
 }
 
+// ---------------- ADD DISTRIBUTOR ----------------
 document.getElementById("addDist").onclick = async ()=>{
   const payload = {
     unique_key: d_unique_key.value,
@@ -41,15 +64,20 @@ document.getElementById("addDist").onclick = async ()=>{
     supplier_id: d_supplier_id.value || null
   };
 
-  await fetch(`${API_BASE}/distributors/add`, {
+  const res = await fetch(`${API_BASE}/distributors/add`, {
     method:"POST",
     headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
     body:JSON.stringify(payload)
   });
 
+  if(!res.ok){
+    alert("Add failed");
+    return;
+  }
   loadDists();
 };
 
+// ---------------- UPDATE ----------------
 async function updateDist(id){
   const payload = {
     name: document.querySelector(`.name[data-id="${id}"]`).value,
@@ -67,13 +95,24 @@ async function updateDist(id){
   loadDists();
 }
 
+// ---------------- DELETE ----------------
 async function deleteDist(id){
   if(!confirm("Delete distributor?")) return;
-  await fetch(`${API_BASE}/distributors/delete/${id}`, {
+
+  const res = await fetch(`${API_BASE}/distributors/delete/${id}`, {
     method:"DELETE",
     headers:{ Authorization:`Bearer ${token}` }
   });
+
+  if(!res.ok){
+    const err = await res.json();
+    alert(err.error || "Delete failed");
+    return;
+  }
   loadDists();
 }
 
-window.onload = loadDists;
+window.onload = () => {
+  loadSuppliersDropdown();
+  loadDists();
+};
