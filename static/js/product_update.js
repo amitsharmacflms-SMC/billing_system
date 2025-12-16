@@ -37,35 +37,35 @@ async function loadProducts(){
 // ----------------------------------
 // ADD PRODUCT  ✅ FIXED
 // ----------------------------------
-document.getElementById('addProd').onclick = async ()=>{
+document.getElementById('addProd').onclick = async () => {
+  const sku = document.getElementById('p_sku').value.trim();
   const name = document.getElementById('p_name').value.trim();
 
-  if(!name){
-    alert("Product name required");
+  if (!sku || !name) {
+    alert("SKU and Product name required");
     return;
   }
 
   const payload = {
-    sku: document.getElementById('p_sku')?.value.trim() || null,
+    sku: sku,
     name: name,
     hsn: document.getElementById('p_hsn').value.trim(),
-    mrp: parseFloat(document.getElementById('p_mrp')?.value || 0),
+    mrp: parseFloat(document.getElementById('p_mrp').value || 0),
     rate: parseFloat(document.getElementById('p_rate').value || 0),
     pack: document.getElementById('p_pack').value.trim()
   };
 
-  const res = await fetch(`${API_BASE}/products/add`, {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      Authorization:`Bearer ${token}`
+  const res = await fetch("/products/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
     },
     body: JSON.stringify(payload)
   });
 
-  if(!res.ok){
-    const err = await res.text();
-    alert("Add failed: " + err);
+  if (!res.ok) {
+    alert(await res.text());
     return;
   }
 
