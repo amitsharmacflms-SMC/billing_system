@@ -5,9 +5,9 @@ function goMenu(){
   window.location.href = "/menu";
 }
 
-// ----------------------------------
+// -----------------------------
 // LOAD PRODUCTS
-// ----------------------------------
+// -----------------------------
 async function loadProducts(){
   const res = await fetch(`${API_BASE}/products/`, {
     headers:{ Authorization:`Bearer ${token}` }
@@ -21,10 +21,10 @@ async function loadProducts(){
     t.insertAdjacentHTML('beforeend', `
       <tr>
         <td>${p.id}</td>
-        <td><input data-id="${p.id}" class="edit_name" value="${p.name || ''}"/></td>
-        <td><input data-id="${p.id}" class="edit_hsn" value="${p.hsn || ''}"/></td>
-        <td><input data-id="${p.id}" class="edit_rate" value="${p.rate || 0}"/></td>
-        <td><input data-id="${p.id}" class="edit_pack" value="${p.pack || ''}"/></td>
+        <td><input class="edit_name" data-id="${p.id}" value="${p.name || ''}"></td>
+        <td><input class="edit_hsn" data-id="${p.id}" value="${p.hsn || ''}"></td>
+        <td><input class="edit_rate" data-id="${p.id}" value="${p.rate || 0}"></td>
+        <td><input class="edit_pack" data-id="${p.id}" value="${p.pack || ''}"></td>
         <td>
           <button onclick="updateProduct(${p.id})">Save</button>
           <button onclick="deleteProduct(${p.id})">Delete</button>
@@ -34,53 +34,45 @@ async function loadProducts(){
   });
 }
 
-// ----------------------------------
-// ADD PRODUCT  ✅ FIXED
-// ----------------------------------
-document.getElementById('addProd').onclick = async () => {
-  const sku = document.getElementById('p_sku').value.trim();
-  const name = document.getElementById('p_name').value.trim();
-
-  if (!sku || !name) {
-    alert("SKU and Product name required");
-    return;
-  }
-
+// -----------------------------
+// ADD PRODUCT
+// -----------------------------
+document.getElementById('addProd').onclick = async ()=>{
   const payload = {
-    sku: sku,
-    name: name,
+    sku: document.getElementById('p_sku').value.trim(),
+    name: document.getElementById('p_name').value.trim(),
     hsn: document.getElementById('p_hsn').value.trim(),
     mrp: parseFloat(document.getElementById('p_mrp').value || 0),
     rate: parseFloat(document.getElementById('p_rate').value || 0),
     pack: document.getElementById('p_pack').value.trim()
   };
 
-  const res = await fetch("/products/add", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + localStorage.getItem("token")
+  const res = await fetch(`${API_BASE}/products/add`, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      Authorization:`Bearer ${token}`
     },
     body: JSON.stringify(payload)
   });
 
-  if (!res.ok) {
+  if(!res.ok){
     alert(await res.text());
     return;
   }
 
-  await loadProducts();
+  loadProducts();
 };
 
-// ----------------------------------
+// -----------------------------
 // UPDATE PRODUCT
-// ----------------------------------
+// -----------------------------
 async function updateProduct(id){
   const payload = {
-    name: document.querySelector(`.edit_name[data-id="${id}"]`).value.trim(),
-    hsn: document.querySelector(`.edit_hsn[data-id="${id}"]`).value.trim(),
+    name: document.querySelector(`.edit_name[data-id="${id}"]`).value,
+    hsn: document.querySelector(`.edit_hsn[data-id="${id}"]`).value,
     rate: parseFloat(document.querySelector(`.edit_rate[data-id="${id}"]`).value || 0),
-    pack: document.querySelector(`.edit_pack[data-id="${id}"]`).value.trim()
+    pack: document.querySelector(`.edit_pack[data-id="${id}"]`).value
   };
 
   const res = await fetch(`${API_BASE}/products/update/${id}`, {
@@ -93,18 +85,18 @@ async function updateProduct(id){
   });
 
   if(!res.ok){
-    alert('Update failed');
+    alert("Update failed");
     return;
   }
 
-  await loadProducts();
+  loadProducts();
 }
 
-// ----------------------------------
+// -----------------------------
 // DELETE PRODUCT
-// ----------------------------------
+// -----------------------------
 async function deleteProduct(id){
-  if(!confirm('Delete product?')) return;
+  if(!confirm("Delete product?")) return;
 
   const res = await fetch(`${API_BASE}/products/delete/${id}`, {
     method:'DELETE',
@@ -112,11 +104,11 @@ async function deleteProduct(id){
   });
 
   if(!res.ok){
-    alert('Delete failed');
+    alert("Delete failed");
     return;
   }
 
-  await loadProducts();
+  loadProducts();
 }
 
 window.onload = loadProducts;
