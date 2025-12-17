@@ -1,8 +1,7 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from core.database import db, migrate
 from config import Config
 from flask_jwt_extended import JWTManager
-from flask import jsonify
 
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -11,7 +10,7 @@ def create_app():
     # ------------------------------
     # INIT JWT
     # ------------------------------
-    jwt = JWTManager(app)
+    JWTManager(app)
 
     # ------------------------------
     # DB + MIGRATIONS
@@ -34,7 +33,6 @@ def create_app():
     from routes.supplier_mapping_routes import map_bp
     from routes.render_invoice import render_invoice_bp
 
-
     # ------------------------------
     # REGISTER BLUEPRINTS
     # ------------------------------
@@ -50,9 +48,8 @@ def create_app():
     app.register_blueprint(map_bp)
     app.register_blueprint(render_invoice_bp)
 
-
     # ------------------------------
-    # FRONT-END ROUTES (HTML PAGES)
+    # FRONT-END ROUTES
     # ------------------------------
     @app.route("/")
     def login_page():
@@ -62,91 +59,69 @@ def create_app():
     def menu_page():
         return render_template("menu.html")
 
-    # RECEIVED STOCK
     @app.route("/received-stock")
     def received_stock_page():
         return render_template("received_stock.html")
 
-    # STOCK REGISTER
     @app.route("/stock-register-page")
     def stock_register_page():
         return render_template("stock_register.html")
 
-    # CREATE INVOICE PAGE
     @app.route("/invoice/create")
     def invoice_create_page():
         return render_template("create_invoice.html")
 
-
-    # SEARCH INVOICE PAGE
     @app.route("/invoice/search")
     def invoice_search_page():
         return render_template("invoice_search.html")
 
-    # REPORTS PAGE
     @app.route("/reports")
     def reports_page():
         return render_template("reports.html")
 
-    @reports_bp.route("/gst-summary")
-    def gst_summary():
-    rows = db.session.execute("""
-        SELECT DATE_TRUNC('month', date) AS month,
-               SUM(total_amount) taxable,
-               SUM(total_tax) gst
-        FROM invoices
-        GROUP BY month
-        ORDER BY month
-    """)
-        return jsonify([dict(r) for r in rows])
-
+    # ------------------------------
+    # GST MONTHLY SUMMARY (FIXED)
+    # ------------------------------
     @app.route("/reports/gst-summary")
     def gst_summary():
-    rows = db.session.execute("""
-        SELECT DATE_TRUNC('month', date) AS month,
-               SUM(total_amount) AS taxable,
-               SUM(total_tax) AS gst
-        FROM invoices
-        GROUP BY month
-        ORDER BY month
-    """).fetchall()
+        rows = db.session.execute("""
+            SELECT DATE_TRUNC('month', date) AS month,
+                   SUM(total_amount) AS taxable,
+                   SUM(total_tax) AS gst
+            FROM invoices
+            GROUP BY month
+            ORDER BY month
+        """).fetchall()
 
         return jsonify([
-        {
-            "month": str(r.month),
-            "taxable": float(r.taxable),
-            "gst": float(r.gst)
-        }
-        for r in rows
-    ])
+            {
+                "month": str(r.month),
+                "taxable": float(r.taxable or 0),
+                "gst": float(r.gst or 0)
+            }
+            for r in rows
+        ])
 
-
-
-
-
-
-    # USER MANAGEMENT
+    # ------------------------------
+    # MANAGEMENT PAGES
+    # ------------------------------
     @app.route("/users/manage")
     def users_manage_page():
         return render_template("user_management.html")
 
-    # PRODUCT MANAGEMENT
     @app.route("/products/manage")
     def products_manage_page():
         return render_template("product_update.html")
 
-    # SUPPLIER MANAGEMENT
     @app.route("/suppliers/manage")
     def suppliers_manage_page():
         return render_template("suppliers_update.html")
 
-    # DISTRIBUTOR MANAGEMENT
     @app.route("/distributors/manage")
     def distributors_manage_page():
         return render_template("distributors_update.html")
 
     print(app.url_map)
-
     return app
 
 
@@ -156,7 +131,7 @@ def create_app():
 app = create_app()
 
 # --------------------------------------------------
-# RAILWAY DEPLOYMENT SERVER
+# RUN SERVER
 # --------------------------------------------------
 if __name__ == "__main__":
     import os
