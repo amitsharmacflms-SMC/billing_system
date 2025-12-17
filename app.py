@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from core.database import db, migrate
 from config import Config
 from flask_jwt_extended import JWTManager
-
+from flask import jsonify
 
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -99,6 +99,27 @@ def create_app():
         ORDER BY month
     """)
         return jsonify([dict(r) for r in rows])
+
+    @app.route("/reports/gst-summary")
+    def gst_summary():
+    rows = db.session.execute("""
+        SELECT DATE_TRUNC('month', date) AS month,
+               SUM(total_amount) AS taxable,
+               SUM(total_tax) AS gst
+        FROM invoices
+        GROUP BY month
+        ORDER BY month
+    """).fetchall()
+
+        return jsonify([
+        {
+            "month": str(r.month),
+            "taxable": float(r.taxable),
+            "gst": float(r.gst)
+        }
+        for r in rows
+    ])
+
 
 
 
