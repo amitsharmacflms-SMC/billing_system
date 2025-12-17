@@ -4,7 +4,7 @@ from sqlalchemy import func
 from datetime import datetime
 
 from core.database import db
-from models.invoice import Invoice
+from models.invoices import Invoice
 from models.invoice_items import InvoiceItem
 from models.stock import StockEntry
 
