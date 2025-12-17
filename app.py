@@ -32,7 +32,7 @@ def create_app():
     from routes.stock_routes import stock_bp
     from routes.user_routes import user_bp
     from routes.supplier_mapping_routes import map_bp
-    
+    from routes.render_invoice import render_invoice_bp
 
 
     # ------------------------------
@@ -48,7 +48,7 @@ def create_app():
     app.register_blueprint(stock_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(map_bp)
-    
+    app.register_blueprint(render_invoice_bp)
 
 
     # ------------------------------
@@ -87,6 +87,22 @@ def create_app():
     @app.route("/reports")
     def reports_page():
         return render_template("reports.html")
+
+    @reports_bp.route("/gst-summary")
+    def gst_summary():
+    rows = db.session.execute("""
+        SELECT DATE_TRUNC('month', date) AS month,
+               SUM(total_amount) taxable,
+               SUM(total_tax) gst
+        FROM invoices
+        GROUP BY month
+        ORDER BY month
+    """)
+        return jsonify([dict(r) for r in rows])
+
+
+
+
 
     # USER MANAGEMENT
     @app.route("/users/manage")

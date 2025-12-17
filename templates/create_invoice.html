@@ -1,51 +1,163 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Create Invoice</title>
-  <link rel="stylesheet" href="/static/css/basic.css">
-</head>
-<body>
+const token = localStorage.getItem("token");
 
-<div class="page">
-  <h2>Create Invoice</h2>
+const authHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${token}`
+};
 
-  <label>Invoice Number</label>
-  <input id="invoice_no">
+let products = [];
 
-  <label>Distributor</label>
-  <select id="buyerSelect"></select>
+/* ---------------- INIT ---------------- */
+window.onload = async () => {
+  await loadDistributors();
+  await loadProducts();
+  addItemRow();
+};
 
-  <h3>Items</h3>
+/* ---------------- LOAD DISTRIBUTORS ---------------- */
+async function loadDistributors(){
+  const res = await fetch("/distributors/", { headers: authHeaders });
+  const data = await res.json();
 
-  <table class="simple-table">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Available CS</th>
-        <th>PCS</th>
-        <th>CS</th>
-        <th>Rate</th>
-        <th>Disc %</th>
-        <th>GST %</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="itemsBody"></tbody>
-  </table>
+  buyerSelect.innerHTML = `<option value="">-- Select Distributor --</option>`;
+  data.forEach(d=>{
+    buyerSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+  });
+}
 
-  <button type="button" onclick="addItemRow()">➕ Add Item</button>
+/* ---------------- LOAD PRODUCTS ---------------- */
+async function loadProducts(){
+  const res = await fetch("/products/", { headers: authHeaders });
+  products = await res.json();
+}
 
-  <div style="margin-top:15px">
-    <b>Taxable:</b> <span id="taxableTotal">0.00</span><br>
-    <b>GST:</b> <span id="gstTotal">0.00</span><br>
-    <b>Grand Total:</b> <span id="grandTotal">0.00</span>
-  </div>
+/* ---------------- ADD ITEM ROW ---------------- */
+function addItemRow(){
+  const tr = document.createElement("tr");
 
-  <br>
-  <button type="button" onclick="saveInvoice()">💾 Save Invoice</button>
-</div>
+  tr.innerHTML = `
+    <td>
+      <select class="product">
+        <option value="">Select</option>
+        ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}
+      </select>
+    </td>
+    <td class="stock">-</td>
+    <td><input type="number" class="pcs" value="0"></td>
+    <td><input type="number" class="cs" value="0"></td>
+    <td><input type="number" class="rate" value="0"></td>
+    <td><input type="number" class="disc" value="0"></td>
+    <td><input type="number" class="gst" value="5"></td>
+    <td><button onclick="this.closest('tr').remove(); recalcTotals()">❌</button></td>
+  `;
 
-<script src="/static/js/create_invoice.js"></script>
-</body>
-</html>
+  const productSelect = tr.querySelector(".product");
+  const csInput = tr.querySelector(".cs");
+  const rateInput = tr.querySelector(".rate");
+  const stockCell = tr.querySelector(".stock");
+
+  productSelect.addEventListener("change", async ()=>{
+    const pid = productSelect.value;
+    if(!pid) return;
+
+    const prod = products.find(p => p.id == pid);
+    rateInput.value = prod?.rate || 0;
+
+    const res = await fetch(`/stock/available/${pid}`, { headers: authHeaders });
+    const data = await res.json();
+
+    stockCell.innerText = data.available_cs;
+
+    if(data.available_cs <= 0){
+      csInput.value = 0;
+      csInput.disabled = true;
+    } else {
+      csInput.disabled = false;
+    }
+  });
+
+  csInput.addEventListener("input", ()=>{
+    const max = Number(stockCell.innerText || 0);
+    if(Number(csInput.value) > max){
+      csInput.value = max;
+      alert("Insufficient stock");
+    }
+    recalcTotals();
+  });
+
+  tr.querySelectorAll("input").forEach(i =>
+    i.addEventListener("input", recalcTotals)
+  );
+
+  itemsBody.appendChild(tr);
+}
+
+/* ---------------- TOTALS ---------------- */
+function recalcTotals(){
+  let taxable = 0, gst = 0;
+
+  document.querySelectorAll("#itemsBody tr").forEach(tr=>{
+    const pcs = Number(tr.querySelector(".pcs").value || 0);
+    const rate = Number(tr.querySelector(".rate").value || 0);
+    const disc = Number(tr.querySelector(".disc").value || 0);
+    const gstp = Number(tr.querySelector(".gst").value || 0);
+
+    const t = rate * pcs * (1 - disc / 100);
+    const g = t * gstp / 100;
+
+    taxable += t;
+    gst += g;
+  });
+
+  taxableTotal.innerText = taxable.toFixed(2);
+  gstTotal.innerText = gst.toFixed(2);
+  grandTotal.innerText = (taxable + gst).toFixed(2);
+}
+
+/* ---------------- SAVE INVOICE (FIXED BUG) ---------------- */
+async function saveInvoice(){
+  const invoiceNoInput = document.getElementById("invoice_no");
+  const buyerSelectEl = document.getElementById("buyerSelect");
+
+  const invoice_no = invoiceNoInput.value.trim();
+  const buyer_id = buyerSelectEl.value;
+
+  if(!invoice_no || !buyer_id){
+    alert("Invoice number and distributor required");
+    return;
+  }
+
+  const items = [];
+  document.querySelectorAll("#itemsBody tr").forEach(tr=>{
+    const pid = tr.querySelector(".product").value;
+    if(!pid) return;
+
+    items.push({
+      product_id: Number(pid),
+      pcs: Number(tr.querySelector(".pcs").value),
+      cs: Number(tr.querySelector(".cs").value),
+      rate: Number(tr.querySelector(".rate").value),
+      disc_percent: Number(tr.querySelector(".disc").value),
+      gst_percent: Number(tr.querySelector(".gst").value)
+    });
+  });
+
+  if(items.length === 0){
+    alert("Add at least one item");
+    return;
+  }
+
+  const res = await fetch("/api/invoices/create", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({ invoice_no, buyer_id, items })
+  });
+
+  const data = await res.json();
+  if(!res.ok){
+    alert(data.error);
+    return;
+  }
+
+  window.location.href = `/invoice/${data.invoice_id}`;
+}

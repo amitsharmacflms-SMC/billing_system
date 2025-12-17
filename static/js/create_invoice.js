@@ -118,8 +118,16 @@ function recalcTotals(){
 
 /* ---------------- SAVE INVOICE ---------------- */
 async function saveInvoice(){
-  const invoice_no = invoice_no.value;
-  const buyer_id = buyerSelect.value;
+  const invoiceNoInput = document.getElementById("invoice_no");
+  const buyerSelectEl = document.getElementById("buyerSelect");
+
+  const invoice_no = invoiceNoInput.value.trim();
+  const buyer_id = buyerSelectEl.value;
+
+  if(!invoice_no || !buyer_id){
+    alert("Invoice number and distributor are required");
+    return;
+  }
 
   const items = [];
   document.querySelectorAll("#itemsBody tr").forEach(tr=>{
@@ -128,15 +136,20 @@ async function saveInvoice(){
 
     items.push({
       product_id: Number(pid),
-      pcs: Number(tr.querySelector(".pcs").value),
-      cs: Number(tr.querySelector(".cs").value),
-      rate: Number(tr.querySelector(".rate").value),
-      disc_percent: Number(tr.querySelector(".disc").value),
-      gst_percent: Number(tr.querySelector(".gst").value)
+      pcs: Number(tr.querySelector(".pcs").value || 0),
+      cs: Number(tr.querySelector(".cs").value || 0),
+      rate: Number(tr.querySelector(".rate").value || 0),
+      disc_percent: Number(tr.querySelector(".disc").value || 0),
+      gst_percent: Number(tr.querySelector(".gst").value || 0)
     });
   });
 
-  const res = await fetch(API_CREATE, {
+  if(items.length === 0){
+    alert("Add at least one item");
+    return;
+  }
+
+  const res = await fetch("/api/invoices/create", {
     method: "POST",
     headers: authHeaders,
     body: JSON.stringify({ invoice_no, buyer_id, items })
@@ -144,9 +157,10 @@ async function saveInvoice(){
 
   const data = await res.json();
   if(!res.ok){
-    alert(data.error);
+    alert(data.error || "Invoice creation failed");
     return;
   }
 
+  alert("Invoice created successfully");
   window.location.href = `/invoice/${data.invoice_id}`;
 }
