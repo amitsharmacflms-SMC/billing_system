@@ -1,4 +1,10 @@
-const API = "/api/invoices/create";
+const API_CREATE = "/api/invoices/create";
+const token = localStorage.getItem("token");
+
+const authHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${token}`
+};
 
 let products = [];
 let distributors = [];
@@ -7,43 +13,78 @@ let distributors = [];
 window.onload = async () => {
   await loadDistributors();
   await loadProducts();
-  addItemRow(); // start with one row
+  addItemRow(); // initial row
 };
 
-/* ---------------- LOAD DATA ---------------- */
+/* ---------------- LOAD DISTRIBUTORS ---------------- */
 async function loadDistributors(){
-  const res = await fetch("/distributors/");
+  const res = await fetch("/distributors/", {
+    headers: authHeaders
+  });
+
+  if(!res.ok){
+    alert("Failed to load distributors (login expired?)");
+    return;
+  }
+
   distributors = await res.json();
 
   const ddl = document.getElementById("buyerSelect");
   ddl.innerHTML = `<option value="">-- Select Distributor --</option>`;
+
   distributors.forEach(d=>{
     ddl.innerHTML += `<option value="${d.id}">${d.name}</option>`;
   });
 }
 
+/* ---------------- LOAD PRODUCTS ---------------- */
 async function loadProducts(){
-  const res = await fetch("/products/");
-  products = await res.json();
+  const res = await fetch("/products/", {
+    headers: authHeaders
+  });
+
+  if(!res.ok){
+    alert("Failed to load products (login expired?)");
+    products = [];
+    return;
+  }
+
+  const data = await res.json();
+
+  // SAFETY: ensure array
+  if(!Array.isArray(data)){
+    console.error("Products API did not return array", data);
+    products = [];
+    return;
+  }
+
+  products = data;
 }
 
-/* ---------------- ADD ROW (FIXES YOUR ERROR) ---------------- */
+/* ---------------- ADD ITEM ROW ---------------- */
 function addItemRow(){
+  if(!Array.isArray(products) || products.length === 0){
+    alert("Products not loaded yet");
+    return;
+  }
+
   const tr = document.createElement("tr");
 
   tr.innerHTML = `
     <td>
       <select class="product">
         <option value="">Select</option>
-        ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}
+        ${products.map(p =>
+          `<option value="${p.id}">${p.name}</option>`
+        ).join("")}
       </select>
     </td>
-    <td><input type="number" class="pcs" value="0"></td>
-    <td><input type="number" class="cs" value="0"></td>
-    <td><input type="number" class="rate" value="0"></td>
-    <td><input type="number" class="disc" value="0"></td>
-    <td><input type="number" class="gst" value="5"></td>
-    <td><button onclick="this.closest('tr').remove()">❌</button></td>
+    <td><input type="number" class="pcs" value="0" min="0"></td>
+    <td><input type="number" class="cs" value="0" min="0"></td>
+    <td><input type="number" class="rate" value="${products[0]?.rate || 0}" min="0"></td>
+    <td><input type="number" class="disc" value="0" min="0"></td>
+    <td><input type="number" class="gst" value="5" min="0"></td>
+    <td><button type="button" onclick="this.closest('tr').remove()">❌</button></td>
   `;
 
   document.getElementById("itemsBody").appendChild(tr);
@@ -51,26 +92,27 @@ function addItemRow(){
 
 /* ---------------- SAVE INVOICE ---------------- */
 async function saveInvoice(){
-  const invoice_no = document.getElementById("invoice_no").value;
+  const invoice_no = document.getElementById("invoice_no").value.trim();
   const buyer_id = document.getElementById("buyerSelect").value;
 
   if(!invoice_no || !buyer_id){
-    alert("Invoice number and distributor required");
+    alert("Invoice number and distributor are required");
     return;
   }
 
   const items = [];
+
   document.querySelectorAll("#itemsBody tr").forEach(tr=>{
     const product_id = tr.querySelector(".product").value;
     if(!product_id) return;
 
     items.push({
-      product_id: product_id,
-      pcs: tr.querySelector(".pcs").value,
-      cs: tr.querySelector(".cs").value,
-      rate: tr.querySelector(".rate").value,
-      disc_percent: tr.querySelector(".disc").value,
-      gst_percent: tr.querySelector(".gst").value
+      product_id: Number(product_id),
+      pcs: Number(tr.querySelector(".pcs").value || 0),
+      cs: Number(tr.querySelector(".cs").value || 0),
+      rate: Number(tr.querySelector(".rate").value || 0),
+      disc_percent: Number(tr.querySelector(".disc").value || 0),
+      gst_percent: Number(tr.querySelector(".gst").value || 0)
     });
   });
 
@@ -79,9 +121,9 @@ async function saveInvoice(){
     return;
   }
 
-  const res = await fetch(API, {
+  const res = await fetch(API_CREATE, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders,
     body: JSON.stringify({
       invoice_no,
       buyer_id,
@@ -92,12 +134,12 @@ async function saveInvoice(){
   const data = await res.json();
 
   if(!res.ok){
-    alert(data.error);
+    alert(data.error || "Invoice creation failed");
     return;
   }
 
   alert("Invoice created successfully");
 
-  // redirect to print/view invoice
+  // Redirect to PRINT / VIEW invoice
   window.location.href = `/invoice/${data.invoice_id}`;
 }
