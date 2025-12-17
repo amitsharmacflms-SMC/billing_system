@@ -56,6 +56,28 @@ def bulk_add_stock():
     return {"message": f"{count} items saved"}, 200
 
 
+@stock_bp.route("/available/<int:product_id>")
+def available_stock(product_id):
+    from sqlalchemy import func
+    from models.stock import StockEntry
+    from models.invoice_items import InvoiceItem
+
+    received = db.session.query(
+        func.coalesce(func.sum(StockEntry.received_cs), 0)
+    ).filter(
+        StockEntry.product_id == product_id
+    ).scalar()
+
+    issued = db.session.query(
+        func.coalesce(func.sum(InvoiceItem.cs), 0)
+    ).filter(
+        InvoiceItem.product_id == product_id
+    ).scalar()
+
+    return {"available_cs": int(received) - int(issued)}
+
+
+
 # -------------------------------------------------
 # ALL PRODUCTS (FOR RECEIVED STOCK PAGE)
 # -------------------------------------------------

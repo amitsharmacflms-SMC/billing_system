@@ -22,6 +22,7 @@
     <thead>
       <tr>
         <th>Product</th>
+        <th>Available CS</th>
         <th>PCS</th>
         <th>CS</th>
         <th>Rate</th>
@@ -34,6 +35,14 @@
   </table>
 
   <button type="button" onclick="addItemRow()">➕ Add Item</button>
+
+  <div style="margin-top:15px">
+    <b>Taxable:</b> <span id="taxableTotal">0.00</span><br>
+    <b>GST:</b> <span id="gstTotal">0.00</span><br>
+    <b>Grand Total:</b> <span id="grandTotal">0.00</span>
+  </div>
+
+  <br>
   <button type="button" onclick="saveInvoice()">💾 Save Invoice</button>
 </div>
 
