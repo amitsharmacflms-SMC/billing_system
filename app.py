@@ -75,7 +75,8 @@ def create_app():
     # CREATE INVOICE PAGE
     @app.route("/invoice/create")
     def invoice_create_page():
-        return render_template("invoice.html")
+        return render_template("create_invoice.html")
+
 
     # SEARCH INVOICE PAGE
     @app.route("/invoice/search")
