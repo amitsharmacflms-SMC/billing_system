@@ -1,3 +1,40 @@
+from flask import Blueprint, request, jsonify
+from core.database import db
+from sqlalchemy import func
+from decimal import Decimal
+from datetime import datetime
+
+from models.invoices import Invoice
+from models.invoice_items import InvoiceItem
+from models.products import Product
+from models.stock import StockEntry
+
+# ---------------------------------------------------
+# BLUEPRINT (THIS WAS MISSING)
+# ---------------------------------------------------
+invoice_bp = Blueprint("invoice", __name__, url_prefix="/api/invoices")
+
+# ---------------------------------------------------
+# STOCK HELPER
+# ---------------------------------------------------
+def get_available_cs(product_id):
+    received = db.session.query(
+        func.coalesce(func.sum(StockEntry.received_cs), 0)
+    ).filter(
+        StockEntry.product_id == product_id
+    ).scalar()
+
+    issued = db.session.query(
+        func.coalesce(func.sum(InvoiceItem.cs), 0)
+    ).filter(
+        InvoiceItem.product_id == product_id
+    ).scalar()
+
+    return int(received) - int(issued)
+
+# ---------------------------------------------------
+# CREATE INVOICE (NEGATIVE STOCK BLOCKED)
+# ---------------------------------------------------
 @invoice_bp.route("/create", methods=["POST"])
 def create_invoice():
     data = request.get_json() or {}
@@ -12,9 +49,9 @@ def create_invoice():
     if not items:
         return jsonify({"error": "Invoice items required"}), 400
 
-    # ------------------------------------------------
-    # 🔒 STOCK VALIDATION (NO DB WRITE YET)
-    # ------------------------------------------------
+    # -----------------------------
+    # 🔒 STOCK VALIDATION
+    # -----------------------------
     for it in items:
         product_id = it.get("product_id")
         cs = int(it.get("cs", 0))
@@ -35,9 +72,9 @@ def create_invoice():
                 )
             }), 400
 
-    # ------------------------------------------------
-    # ✅ STOCK OK → CREATE INVOICE
-    # ------------------------------------------------
+    # -----------------------------
+    # CREATE INVOICE
+    # -----------------------------
     inv = Invoice(
         invoice_number=invoice_no,
         date=datetime.utcnow(),
@@ -48,7 +85,7 @@ def create_invoice():
     )
 
     db.session.add(inv)
-    db.session.flush()   # get inv.id
+    db.session.flush()  # get inv.id
 
     total_taxable = Decimal("0.00")
     total_gst = Decimal("0.00")
