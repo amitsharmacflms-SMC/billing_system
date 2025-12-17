@@ -17,6 +17,7 @@
   <select id="buyerSelect"></select>
 
   <h3>Items</h3>
+
   <table class="simple-table">
     <thead>
       <tr>
@@ -24,14 +25,16 @@
         <th>PCS</th>
         <th>CS</th>
         <th>Rate</th>
+        <th>Disc %</th>
         <th>GST %</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody id="itemsBody"></tbody>
   </table>
 
-  <button onclick="addItemRow()">Add Item</button>
-  <button onclick="saveInvoice()">Save Invoice</button>
+  <button type="button" onclick="addItemRow()">➕ Add Item</button>
+  <button type="button" onclick="saveInvoice()">💾 Save Invoice</button>
 </div>
 
 <script src="/static/js/create_invoice.js"></script>
